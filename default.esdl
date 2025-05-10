@@ -1,4 +1,4 @@
-# This file contains an EdgeDB schema, which is used for inspiration and as a reference for schema ideas for Quigley.
+# This file contains a GelDB schema (formerly EdgeDB), which is used for inspiration and as a reference for schema ideas for Quigley.
 
 # TODO: Continue here:
 # * Maybe when a user creates a budget or a bank transaction (on the bank-account page), then I will create Budget and BankTransaction nodes at that time. Maybe?
@@ -11,7 +11,7 @@ module default {
   scalar type UserRoles extending enum<member, admin>;
 
   # Since most of the queries start by finding the User node whose id matches a given value or the UserAccount node whose id matches a given value, I was going to create indexes on the User.id field and/or UserAccount.id field.
-  # However, there is no need to create indexes the User.id or UserAccount.id fields because the `id` property, all links, and all properties with `exclusive` constraints are automatically indexed. (See https://docs.edgedb.com/get-started/schema#indexes)
+  # However, there is no need to create indexes the User.id or UserAccount.id fields because the `id` property, all links, and all properties with `exclusive` constraints are automatically indexed. (See https://docs.geldata.com/learn/schema#indexes)
   type User {
     authServerUserId: str;
     firstName: str;
@@ -34,7 +34,7 @@ module default {
     required permissions: array<str>;
     required createdAt: str;
     multi netWorthItems: NetWorthItem;
-    multi users := .<userAccount[is User]; # Create a backlink that references all users that belong to this account. In other words, this `users` backlink will return all `User` objects with a link called `userAccount` that points to the current `UserAccount`. See https://docs.edgedb.com/get-started/schema#backlinks.
+    multi users := .<userAccount[is User]; # Create a backlink that references all users that belong to this account. In other words, this `users` backlink will return all `User` objects with a link called `userAccount` that points to the current `UserAccount`. See https://docs.geldata.com/learn/schema#backlinks.
   }
 
   # The "bubble" layout would probably use something like a D3.js Bubble Chart where categories or items that have more money allocated to them would be represented with larger bubbles and there would be a dial around the outside of the bubble that represents how much they have spent of that allocated amount. USAA's budget app does a pretty nice job with their bubble-style budgeting app.

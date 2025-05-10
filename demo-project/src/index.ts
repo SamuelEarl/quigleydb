@@ -1,4 +1,4 @@
-import { quigley as qgly } from "/index";
+import { quigley as qgly } from "../../index";
 
 
 // const query = `

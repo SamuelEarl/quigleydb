@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { findQueryObjSchema } from "../query-validator";
 import { schema as validSchemaSyntax } from "./test-schema.valid-syntax";
 

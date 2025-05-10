@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { checkForDuplicateLabels, schemaSyntaxValidator } from "../schema-syntax-validator";
 import { schema as invalidSchemaSyntax } from "./test-schema.invalid-syntax";
 import { schema as validSchemaSyntax } from "./test-schema.valid-syntax";

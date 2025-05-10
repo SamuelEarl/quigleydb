@@ -1,14 +1,14 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { quigley as qgly } from "..";
 
 
 // TODO: Make sure to write tests for all `throw new Error()` statements in the Quigley code.
 
 
-describe("index.ts (qgly end-to-end tests)", () => {
+describe.skip("index.ts (qgly end-to-end tests)", () => {
 
   describe("qgly()", () => {
-    test.skip("The query should return a hierarchical data structure", () => {
+    test("The query should return a hierarchical data structure", () => {
       // SETUP
       const query = `
         MATCH (s:Student {

@@ -1,5 +1,5 @@
 import { isEqual, sortBy } from "lodash";
-import { configs } from "../../../qgly.config";
+import { configs } from "./qgly.config";
 import { handleError } from "./utils";
 import type {
   IAnyObject,

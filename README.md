@@ -5,16 +5,16 @@ Quigley is a middleware for GQL that provides two things:
 1. Schema validation. It will validate your GQL query against a schema that you define. After your GQL query is validated, then your query will be sent to the database.
 2. Hierarchically formatted query results. Your query results will be formatted in a data structure that is GraphQL-like and that shows the relationships between the records that are returned.
 
-There is also a CLI that helps to automate schema migrations.
+There will also be a CLI that helps to automate schema migrations.
 
 ---
 
 ## Motivations
 
-* I like how SurrealDB has an optional schema, which makes it easier when prototyping apps and testing ideas. But when you are ready to create production-level apps, you want a clearly-defined schema that everyone has to adhere to otherwise you are going to run into data integrity and corruption issues. So I wanted to provide a similar "optional schema" feature for graph databases that use GQL. 
-* I want the schema to be validated during development and even in production, if it is also necessary to validate the schema in production.
-* I want to have hierarchical data structures from my queries. Graph database are great for showing the relationships between records (called nodes), but if the queries return results as a flat list of records with no relationships, then it feels like we are missing a huge part of what makes graph databases so awesome!
-* If you have a schema, then you will have to deal with schema migrations. I want to create a CLI that also helps to automate schema migrations.
+* I like how SurrealDB has an optional schema, which makes it easier when prototyping apps and testing ideas. But when you are ready to create production-level apps, you want a clearly-defined schema that everyone has to adhere to otherwise you could run into data integrity and/or data corruption issues. So I want to provide a similar "optional schema" feature for graph databases that use GQL.
+* I want the schema to be validated during development and even in production. It might not be necessary to validate the schema in production if you have already been validating it during development, but the option is there if you need it.
+* I want to have hierarchical data structures from my queries. Graph databases are great for showing the relationships between records (called nodes), but if the queries return results as a flat list of records with no relationships, then it feels like we are missing a huge part of what makes graph databases so awesome!
+* If you have a schema, then you will have to deal with schema migrations. I want to create a Quigley CLI (qgly) that also helps to automate schema migrations.
 
 ---
 
@@ -25,30 +25,34 @@ There is also a CLI that helps to automate schema migrations.
 
 ---
 
-# Testing the Code
+## Testing the Code
 
-## How to run the unit tests
+### How to run the unit tests
 
-* `bun test` This will run all the unit tests.
-or
-* `bun test --only` This will only run tests that are marked with "test.only()".
+This project uses Vitest as the test runner because it can be configured with type checking enabled, which will include a "Type Errors" line in the output.
+
+Run all the unit tests: `bun run test`
+
+```
+NOTE:
+
+If you are using Bun as your package manager, make sure to use "bun run test" command instead of "bun test", otherwise Bun will run its own test runner.
+
+See https://vitest.dev/guide/#writing-tests
+```
+
+If any tests are marked with `test.only()`, then only those tests will run.
+
+If any tests are marked with `test.skip()`, then those tests will be excluded when you run `bun run test`.
+
+See [Vitest API](https://vitest.dev/api/).
 
 
-## How to exclude unit tests from a test run
+### How to run the code in the `demo-project` directory
 
-Tests that are marked with "test.skip()" will be excluded when you run `bun test` and those skipped tests will be marked as `skip` in the terminal output.
+This project was created using the Bun runtime. You can follow the instruction on Bun's website to [install Bun on your computer](https://bun.sh/docs/installation).
 
-See [Skip tests with the Bun test runner](https://bun.sh/guides/test/skip-tests).
-
-
-## How to run the code in the `quigley/` directory
-
-After running the unit tests, I need to run the entire Quigley library with ts-node to make sure that all of the TypeScript code is accurate.
-
-* Install TypeScript globally with ts-node: `npm install -g ts-node`
-* Run the TypeScript file:
-    * Run `npm run qgly` from the project root directory.
-    * Or navigate to the `src/db/` directory and run `NODE_ENV="development" ts-node quigley-demo.ts`
+You can run the entire Quigley library with `bun` by running `npm run demo-project` from the project root directory.
 
 ---
 
@@ -69,7 +73,7 @@ I want to create a GQL middleware for FalkorDB that uses these ideas:
     1. Maybe I could have a command like `qgly generate migration schema.v1.ts schema.v2.ts` that creates a diff of the two (versioned) schema files along with default values that should be inserted for new properties that are introduced into the schema. This could create a migration file with a name like this: `migration.to.schema.v2.ts`.
     2. Then I could have a command like `qgly apply migration migration.to.schema.v2.ts staging` that executes the migration against the specified database (which is "staging" in the previous example). Then I can run unit/integration/e2e tests in that environment.
     3. In the Quigley configs (qgly.config.ts) the user would then have to update the schema that is referenced so that queries do not throw validation errors. Or, better yet, that should be automated by the CLI with an alert to the user that the schema that is referenced in the config file will be updated to the newly migrated schema.
-3. Uses EdgeDB's EdgeQL as inspiration (e.g. schema declaration, query syntax, and hierarchical format of query results). See https://docs.edgedb.com/get-started/edgeql.
+3. Uses GelDB's query language (formerly EdgeDB) as inspiration (e.g. schema declaration, query syntax, and hierarchical format of query results). See https://docs.geldata.com/.
 4. (Maybe) Borrows ideas from Memgraph's GQLAlchemy library. See https://memgraph.com/memgraph-for-python-developers and https://github.com/memgraph/gqlalchemy/tree/main.
 5. Borrow ideas from Drizzle ORM (e.g. type safety).
 
