@@ -1,0 +1,26 @@
+{
+  "name": "quigley-gql-middleware",
+  "version": "0.0.1",
+  "description": "Middleware for GQL that provides schema validation and hierarchically formatted query results.",
+  "main": "index.ts",
+  "directories": {
+    "test": "tests",
+    "demo-project": "cd demo-project/src && NODE_ENV='development' ts-node index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamuelEarl/quigley-gql-middleware.git"
+  },
+  "author": "Samuel Earl",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SamuelEarl/quigley-gql-middleware/issues"
+  },
+  "homepage": "https://github.com/SamuelEarl/quigley-gql-middleware#readme",
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
