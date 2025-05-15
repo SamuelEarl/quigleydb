@@ -10,10 +10,11 @@ import type {
   INodeQueryObj,
   IRelationshipQueryObj,
   IQueryClauseObj,
-  NestedObject,
+  NestedObjectType,
   SchemaType,
   INodeSchema,
   IRelationshipSchema,
+  PlainObjectType,
 } from "./types";
 import { isINodeQueryObj, isIRelationshipQueryObj } from "./types";
 
@@ -112,6 +113,106 @@ export function findQueryObjSchema(dbSchema: IAnyObject, key: string, value: str
   return null;
 }
 
+// TODO: Create tests for this function.
+/**
+ * This function takes a schema object for props and the props object from a query object. It then loops over the schema object and validates the corresponding props from the query object to ensure that the props from the query object match what is defined in the props schema (e.g. type definitions, values, object nesting).
+ * @param schemaForProps 
+ * @param queryObjProps 
+ */
+export function validateQueryObjPropsAgainstSchemaForProps(parentKey: string, schemaForProps: NestedObjectType, queryObjProps: PlainObjectType) {
+  try {
+    for (const prop in schemaForProps) {
+      console.log("PROP:", prop);
+      // TODO: If the schema prop has nested props (e.g. the prop is an address with nested properties for city, state, street, zip), then I need to recursively loop over that nested object.
+      // If the prop does _not_ have a "type" property, then call `validateQueryObjPropsAgainstSchemaForProps()` recursivley.
+      if (!Object.hasOwn(schemaForProps[prop], "type")) {
+        console.log("IMPLEMENT RECURSIVE INVOCATION OF validateQueryObjPropsAgainstSchemaForProps()");
+        // If the prop is an address with nested properties for city, state, street, zip (e.g. "address.city", "address.state"), then `parentKeyOfSchemaObjForNestedProps` would be "address".
+        const parentKeyOfSchemaObjForNestedProps = prop;
+        // Get the nested object. For example, if the prop is an address with nested properties for city, state, street, zip, then the nested object would be something like `{ street: { type: String, }, city: { type: String, }, state: { type: String, }, zip: { type: String, } }`.
+        const schemaObjForNestedProps = schemaForProps[prop];
+        // Create an object of nested query props that will be passed to `validateQueryObjPropsAgainstSchemaForProps()` in a recursive call.
+        const nestedQueryObjProps = {};
+        let updatedParentKey = "";
+        // Loop over the queryObjProps that are passed into this function and pull out the nested props, which are any props that use dot notation in the key name (e.g. "address.street", "address.city").
+        for (const nestedQueryObjProp in queryObjProps) {
+          // If the nestedQueryObjProp is nested more than one level deep (e.g. "company.location.address.street"), then make sure to look for the prop by the correct key, which will be a concatenated string of all the previous parent keys.
+          if (parentKey && nestedQueryObjProp.startsWith(parentKey)) {
+            updatedParentKey = `${parentKey}.${nestedQueryObjProp}`;
+            nestedQueryObjProps[updatedParentKey] = queryObjProps[nestedQueryObjProp];
+          }
+          // If this is the first level of nested props (e.g. "address.street"), then look for the nestedQueryObjProp that startsWith `parentKeyOfSchemaObjForNestedProps` (e.g. "address") and add that to the `nestedQueryObjProps` object.
+          // For example, if `parentKeyOfSchemaObjForNestedProps` is "address" and the current prop in the loop is this:
+          // "address.street": "123 Main"
+          // ...then that prop would get added to `nestedQueryObjProps`.
+          else if (!parentKey && nestedQueryObjProp.startsWith(parentKeyOfSchemaObjForNestedProps)) {
+            updatedParentKey = nestedQueryObjProp;
+            nestedQueryObjProps[updatedParentKey] = queryObjProps[nestedQueryObjProp];
+          }
+          // else: If neither of the previous conditional statements match, then the prop won't be added to the `nestedQueryObjProps` object.
+        }
+        validateQueryObjPropsAgainstSchemaForProps(updatedParentKey, schemaObjForNestedProps, nestedQueryObjProps);
+      }
+      else {
+        if (queryObjProps) {
+          // TODO: Not every prop is required in every query. For example, a MATCH query might have only one prop or no props. So I need to figure out how to validate the queries based on the type of query. I guess it's only CREATE and MERGE queries that need to check for required properties because the data that gets entered into the database needs to include all required data. All other CRUD operations can just be validated for data types. So that might not be too difficult.
+          // Check if the query object is part of a "CREATE" or "MERGE" clause. If a prop is defined in the schema, then it is considered to be required. So make sure that every prop has been defined in the query object along with a corresponding param. See my "Schema Definition Rules" in the README.md file.
+          if (queryClauseObj.clause.toUpperCase() === "CREATE" || queryClauseObj.clause.toUpperCase() === "MERGE") {
+            checkForRequiredProps(queryObjProps, prop);
+          }
+        
+          // TODO: Each of these prop checks needs to be in their own function so I can create unit tests for them.
+
+          // Check if the prop's type from the schema matches the type that was passed as a param.
+          // The following `if` statement checks for this: If the props object exists and the prop from the current iteration of the `for` loop exists and the prop is *not* an `instanceof` the "type" from the schema, then throw an error.
+          // TODO: This `if` statement won't work, but I think this post has a solution that will work: https://stackoverflow.com/a/40227447. I want to name my equivalent functions getTypeOf() and getInstanceOf().
+          // See also https://stackoverflow.com/questions/899574/what-is-the-difference-between-typeof-and-instanceof-and-when-should-one-be-used.
+          if (queryObjProps[prop] && getInstanceOf(queryObjProps[prop], schemaForProps[prop]["type"])) {
+            throw new Error(`The "${prop}" param's data type does not match the data type that is defined in the schema.`);
+          }
+
+          // Check the prop's `onlyOneValue` value.
+          if (schemaForProps[prop]["onlyOneValue"]) {
+            // Check if the prop value is a single value (as opposed to an array of values) from the `onlyOneValue` array. If the prop value is not one of the values from the `onlyOneValue` array, then throw an error.
+            if (!schemaForProps[prop]["onlyOneValue"].includes(queryObjProps[prop])) {
+              throw new Error(`The "${prop}" param is not one of the values that is defined in the "onlyOneValue" array property in the schema.`);
+            }
+          }
+
+          // Check the prop's `atLeastOneValue` value.
+          if (schemaForProps[prop]["atLeastOneValue"]) {
+            // If the query obj's prop is *not* an array, then throw an error.
+            if (!Array.isArray(queryObjProps[prop])) {
+              throw new Error(`The value of the "${prop}" param should be an array that contains only values that are defined in the "atLeastOneValue" property in the schema.`);
+            }
+            // Check if each value in the query obj's prop array is defined in the schema's `atLeastOneValue` array. If the prop values are not all defined in the `atLeastOneValue` array, then throw an error.
+            const schemaPropArray = schemaForProps[prop]["atLeastOneValue"];
+            const queryPropArray = queryObjProps[prop];
+            if (!schemaPropArray.every((value: any) => queryPropArray.includes(value))) {
+              throw new Error(`The "${prop}" param contains values that are not defined in the "atLeastOneValue" array property in the schema.`);
+            }
+          }
+
+          // Check the prop's `allValues` value.
+          if (schemaForProps[prop]["allValues"]) {
+            // If the query obj's prop is *not* an array, then throw an error.
+            if (!Array.isArray(queryObjProps[prop])) {
+              throw new Error(`The value of the "${prop}" param should be an array that contains all the values that are defined in the "allValues" property in the schema.`);
+            }
+            // Check if all the values in the query obj's prop array are defined in the schema's `allValues` array. If the prop values are not all defined in the `allValues` array, then throw an error.
+            const schemaPropArray = schemaForProps[prop]["allValues"];
+            const queryPropArray = queryObjProps[prop];
+            if (!isEqual(sortBy(schemaPropArray), sortBy(queryPropArray))) {
+              throw new Error(`The "${prop}" param does not contain the same values that are defined in the "allValues" array property in the schema.`);
+            }
+          }
+
+        }
+      }
+    }
+  }
+}
+
 // TODO: Finish this function and write some tests for it.
 /**
  * Validate the query object against the schema for the query object.
@@ -132,76 +233,12 @@ export function validateQueryObjAgainstSchema(schemaForQueryObj: INodeSchema | I
         // If there is not a type with the specified label in the schema, then throw an error.
         throw new Error(`There is no ${queryObj.type} with the label "${queryObj.label}" in the schema. Check your query.`);
       }
-      // Loop over the `props` in the schema and validate each prop from the query object against the schema.
+      // Check if the schemaForQueryObj has a "props" property.
       if (property === "props") {
         const schemaForProps = schemaForQueryObj.props;
         // console.log("SCHEMA PROPS:", schemaForProps);
-        
-        // TODO: I should probably turn the rest of this code into a function and create tests for it.
-        // validateQueryObjAgainstSchema(schemaForProps, queryObj.props);
-        for (const prop in schemaForProps) {
-          console.log("PROP:", prop);
-          // TODO: If the schema prop has nested props (e.g. the prop is an address with nested properties for city, state, street, zip), then I need to recursively loop over that nested object.
-          if (!("type" in schemaForProps[prop])) {
-            console.log("IMPLEMENT NESTED OBJECT INSPECTION!!!");
-          }
-          else {
-            if (queryObj.props) {
-              // TODO: Not every prop is required in every query. For example, a MATCH query might have only one prop or no props. So I need to figure out how to validate the queries based on the type of query. I guess it's only CREATE and MERGE queries that need to check for required properties because the data that gets entered into the database needs to include all required data. All other CRUD operations can just be validated for data types. So that might not be too difficult.
-              // Check if the query object is part of a "CREATE" or "MERGE" clause. If a prop is defined in the schema, then it is considered to be required. So make sure that every prop has been defined in the query object along with a corresponding param. See my "Schema Definition Rules" in the README.md file.
-              if (queryClauseObj.clause.toUpperCase() === "CREATE" || queryClauseObj.clause.toUpperCase() === "MERGE") {
-                checkForRequiredProps(queryObj.props, prop);
-              }
-            
-              // TODO: Each of these prop checks needs to be in their own function so I can create unit tests for them.
-
-              // Check if the prop's type from the schema matches the type that was passed as a param.
-              // The following `if` statement checks for this: If the props object exists and the prop from the current iteration of the `for` loop exists and the prop is *not* an `instanceof` the "type" from the schema, then throw an error.
-              // TODO: This `if` statement won't work, but I think this post has a solution that will work: https://stackoverflow.com/a/40227447. I want to name my equivalent functions getTypeOf() and getInstanceOf().
-              // See also https://stackoverflow.com/questions/899574/what-is-the-difference-between-typeof-and-instanceof-and-when-should-one-be-used.
-              if (queryObj.props[prop] && getInstanceOf(queryObj.props[prop], schemaForProps[prop]["type"])) {
-                throw new Error(`The "${prop}" param's data type does not match the data type that is defined in the schema.`);
-              }
-
-              // Check the prop's `onlyOneValue` value.
-              if (schemaForProps[prop]["onlyOneValue"]) {
-                // Check if the prop value is a single value (as opposed to an array of values) from the `onlyOneValue` array. If the prop value is not one of the values from the `onlyOneValue` array, then throw an error.
-                if (!schemaForProps[prop]["onlyOneValue"].includes(queryObj.props[prop])) {
-                  throw new Error(`The "${prop}" param is not one of the values that is defined in the "onlyOneValue" array property in the schema.`);
-                }
-              }
-
-              // Check the prop's `atLeastOneValue` value.
-              if (schemaForProps[prop]["atLeastOneValue"]) {
-                // If the query obj's prop is *not* an array, then throw an error.
-                if (!Array.isArray(queryObj.props[prop])) {
-                  throw new Error(`The value of the "${prop}" param should be an array that contains only values that are defined in the "atLeastOneValue" property in the schema.`);
-                }
-                // Check if each value in the query obj's prop array is defined in the schema's `atLeastOneValue` array. If the prop values are not all defined in the `atLeastOneValue` array, then throw an error.
-                const schemaPropArray = schemaForProps[prop]["atLeastOneValue"];
-                const queryPropArray = queryObj.props[prop];
-                if (!schemaPropArray.every((value: any) => queryPropArray.includes(value))) {
-                  throw new Error(`The "${prop}" param contains values that are not defined in the "atLeastOneValue" array property in the schema.`);
-                }
-              }
-
-              // Check the prop's `allValues` value.
-              if (schemaForProps[prop]["allValues"]) {
-                // If the query obj's prop is *not* an array, then throw an error.
-                if (!Array.isArray(queryObj.props[prop])) {
-                  throw new Error(`The value of the "${prop}" param should be an array that contains all the values that are defined in the "allValues" property in the schema.`);
-                }
-                // Check if all the values in the query obj's prop array are defined in the schema's `allValues` array. If the prop values are not all defined in the `allValues` array, then throw an error.
-                const schemaPropArray = schemaForProps[prop]["allValues"];
-                const queryPropArray = queryObj.props[prop];
-                if (!isEqual(sortBy(schemaPropArray), sortBy(queryPropArray))) {
-                  throw new Error(`The "${prop}" param does not contain the same values that are defined in the "allValues" array property in the schema.`);
-                }
-              }
-
-            }
-          }
-        }
+        // Loop over the `props` in the schema and validate each prop from the query object against the schema.
+        validateQueryObjPropsAgainstSchemaForProps("", schemaForProps!, queryObj.props);
       }
     }
   }

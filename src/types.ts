@@ -1,8 +1,10 @@
+// `AnyObject` is an interface that defines an index signature `[key: string]: any`. This means that the object can have any number of properties, where the key is a string and the value can be of any type. 
+// To define an interface that allows any object structure, you can use an index signature. This approach is useful when the properties of the object are not known in advance.
 export interface IAnyObject {
   [key: string]: any;
 }
 
-// The data type of variable is either a primitive data type, a Date, or an array of primitive data types or an array of Dates.
+// The data type of a variable or an object's property is either a primitive data type, a Date, or an array of primitive data types or an array of Dates.
 export type PrimitiveTypesPlus = string | string[] | number | number[] | boolean | boolean[] | null | null[] | undefined | undefined[] | symbol | symbol[] | bigint | bigint[] | Date | Date[];
 
 // This type defines objects without any nested objects. In other words, the object's properties are either primitive data types, Dates, or arrays of primitive data types or arrays of Dates.
@@ -10,8 +12,10 @@ export type PlainObjectType = {
   [key: string]: PrimitiveTypesPlus;
 };
 
+// This type defines the constructors of primitive data types, Dates, or arrays of primitive data types or arrays of Dates.
 export type PrimitiveConstructorTypesPlus = StringConstructor | StringConstructor[] | NumberConstructor | NumberConstructor[] | BooleanConstructor | BooleanConstructor[] | SymbolConstructor | SymbolConstructor[] | BigIntConstructor | BigIntConstructor[] | DateConstructor | DateConstructor[] | JSON;
 
+// NOTE: Do not use this as the type for schema props. Use the NestedObjectType instead, which references this interface.
 interface IPropsSchema {
   // TODOS: Look at https://mongoosejs.com/docs/schematypes.html.
   // Scenarios when a JSON property in a database might make sense: Not all users may have access to the same features and sections of your application. Similarly, each user might configure your application based on their preferences. These are two common scenarios and involve data that changes a lot over time. This is because your application is likely to evolve, involving new configurations, views, features, and sections. As a result, you have to continuously update your relational schema to match the new data structure. This takes time and energy. Instead, you can store permissions and configurations in a JSON column directly connected to your user table. Also, JSON is a good data format for your permissions and configuration. In fact, your application is likely to treat this data in JSON format. See https://dev.to/writech/when-to-use-json-data-in-a-relational-database-4i0b
@@ -27,15 +31,15 @@ interface IPropsSchema {
 }
 
 // Props schema: In order to allow infinitely nested objects (for props) in the user's schema but still require each prop in the schema to follow the required structure, we can simply reference the type recursively. See https://stackoverflow.com/a/73767780.
-export type NestedObject = {
-  [key: string]: IPropsSchema | NestedObject;
+export type NestedObjectType = {
+  [key: string]: IPropsSchema | NestedObjectType;
 };
 
 export interface INodeSchema {
   type: "node";
   label: string;
   alias?: string;
-  props: NestedObject;
+  props: NestedObjectType;
 }
 
 export interface IRelationshipSchema {
@@ -45,7 +49,7 @@ export interface IRelationshipSchema {
   from: INodeSchema;
   to: INodeSchema;
   direction: "bidirectional" | "directed";
-  props?: NestedObject;
+  props?: NestedObjectType;
 }
 
 export type QueryObjType = "node" | "relationship";
@@ -54,7 +58,7 @@ export interface INodeQueryObj {
   type: QueryObjType;
   label: string;
   alias?: string;
-  props?: IAnyObject;
+  props?: PlainObjectType;
 }
 
 export interface IRelationshipQueryObj {
@@ -64,7 +68,7 @@ export interface IRelationshipQueryObj {
   from: INodeQueryObj | null;
   to: INodeQueryObj | null;
   direction: "bidirectional" | "directed";
-  props?: IAnyObject;
+  props?: PlainObjectType;
 }
 
 export interface IQueryClauseObj {
@@ -108,15 +112,6 @@ export function isINodeQueryObj(obj: any): obj is INodeQueryObj  {
   );
 }
 
-// export interface IRelationshipQueryObj {
-//   type: QueryObjType;
-//   label: string;
-//   alias?: string;
-//   from: INodeQueryObj | null;
-//   to: INodeQueryObj | null;
-//   direction: "bidirectional" | "directed";
-//   props?: IAnyObject;
-// }
 export function isIRelationshipQueryObj(obj: any): obj is IRelationshipQueryObj {
   let aliasIsString = true;
   if (obj.alias) {
