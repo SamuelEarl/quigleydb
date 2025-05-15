@@ -81,3 +81,63 @@ export interface IQueryParams {
 export type SchemaType = {
   [key: string]: INodeSchema | IRelationshipSchema;
 }
+
+
+// ---------------------
+// Type Guard Functions
+// ---------------------
+export function isINodeQueryObj(obj: any): obj is INodeQueryObj  {
+  let aliasIsString = true;
+  if (obj.alias) {
+    aliasIsString = typeof obj.alias === "string";
+  }
+
+  let hasProps = true;
+  if (obj.props) {
+    // Check is props is an object. Props cannot be an array, a function, or null.
+    hasProps = typeof obj.props === "object" && !Array.isArray(obj.props) && obj.props !== null;
+  }
+
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    obj.type === "node" &&
+    typeof obj.label === "string" &&
+    aliasIsString &&
+    hasProps
+  );
+}
+
+// export interface IRelationshipQueryObj {
+//   type: QueryObjType;
+//   label: string;
+//   alias?: string;
+//   from: INodeQueryObj | null;
+//   to: INodeQueryObj | null;
+//   direction: "bidirectional" | "directed";
+//   props?: IAnyObject;
+// }
+export function isIRelationshipQueryObj(obj: any): obj is IRelationshipQueryObj {
+  let aliasIsString = true;
+  if (obj.alias) {
+    aliasIsString = typeof obj.alias === "string";
+  }
+
+  let hasProps = true;
+  if (obj.props) {
+    // Check is props is an object. Props cannot be an array, a function, or null.
+    hasProps = typeof obj.props === "object" && !Array.isArray(obj.props) && obj.props !== null;
+  }
+
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    obj.type === "relationship" &&
+    typeof obj.label === "string" &&
+    aliasIsString &&
+    (isINodeQueryObj(obj.from) || typeof obj.from === null) &&
+    (isINodeQueryObj(obj.to) || typeof obj.to === null) &&
+    (obj.direction === "bidirectional" || obj.direction === "directed") &&
+    hasProps
+  );
+}

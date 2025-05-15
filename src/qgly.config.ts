@@ -1,4 +1,4 @@
-import { schema } from "./demo-project/src/db/schemas/school-schema.v1";
+import { schema } from "../demo-project/src/db/schemas/school-schema.v1";
 
 export const configs = {
   schema,

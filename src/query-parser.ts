@@ -58,7 +58,7 @@ export function parseProps(propsString: string, params?: PlainObjectType) {
     return props;
   }
   catch(err: any) {
-    handleError("parseProps ERROR:", err);
+    handleError("parseProps", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }
@@ -143,7 +143,7 @@ export function parseQueryObj(type: QueryObjType, queryObjString: string, params
     }
   }
   catch(err: any) {
-    handleError("parseQueryObj ERROR:", err);
+    handleError("parseQueryObj", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }
@@ -180,7 +180,7 @@ export function convertQueryObjStrToJSObj(type: QueryObjType, startIndex: number
     }
   }
   catch(err: any) {
-    handleError("convertQueryObjStrToJSObj ERROR:", err);
+    handleError("convertQueryObjStrToJSObj", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }
@@ -309,7 +309,7 @@ export function queryParser(queryString: string, params?: PlainObjectType) {
     return queryClauseObjs;
   }
   catch(err: any) {
-    handleError("queryParser Error:", err);
+    handleError("queryParser", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }

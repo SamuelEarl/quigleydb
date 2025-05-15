@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { quigley as qgly } from "..";
+import { quigley as qgly } from "../src";
 
 
 // TODO: Make sure to write tests for all `throw new Error()` statements in the Quigley code.

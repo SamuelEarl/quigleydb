@@ -1,7 +1,5 @@
 # TODOS
 
----
-
 * I need to work through some tutorials from Neo4j, Memgraph, etc. that use demo datasets (e.g. the movie dataset) to test multiple queries of varying complexity to make sure that my schema validations and hierarchical query results work properly. 
   * I can look at this page https://neo4j.com/docs/getting-started/appendix/example-data/ and maybe even work through all of the pages starting here https://neo4j.com/docs/getting-started/
 * Improve error messages.

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { findQueryObjSchema } from "../query-validator";
+import { findQueryObjSchema } from "../src/query-validator";
 import { schema as validSchemaSyntax } from "./test-schema.valid-syntax";
 
 describe("query-validator.ts", () => {
 
   describe("findQueryObjSchema()", () => {
-    test("The schema for a 'Student' node query object should be returned.", () => {
+    test("A call to findQueryObjSchema with a 'Student' node query object should return the schema for a 'Student' node.", () => {
       // SETUP
       const nodeQueryObj = {
         type: "node",
@@ -30,10 +30,43 @@ describe("query-validator.ts", () => {
       };
 
       // EXECUTE
-      const results = findQueryObjSchema(validSchemaSyntax, "label", nodeQueryObj.label)
+      const results = findQueryObjSchema(validSchemaSyntax, "label", nodeQueryObj.label);
 
       // VERIFY
       expect(results).toEqual(validSchemaSyntax.Student);
+
+      // TEARDOWN
+
+    });
+
+    test("A call to findQueryObjSchema with a 'Movie' node query object should return null because a 'Movie' node is not defined in the schema.", () => {
+      // SETUP
+      const nodeQueryObj = {
+        type: "node",
+        label: "Movie",
+        alias: "m",
+        props: {},
+      };
+
+      // EXECUTE
+      const results = findQueryObjSchema(validSchemaSyntax, "label", nodeQueryObj.label);
+
+      // VERIFY
+      expect(results).toEqual(null);
+
+      // TEARDOWN
+
+    });
+
+    test("validateQueryObjAgainstSchema should...", () => {
+      // SETUP
+      
+
+      // EXECUTE
+      
+
+      // VERIFY
+      expect(results).toEqual(null);
 
       // TEARDOWN
 

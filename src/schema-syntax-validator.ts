@@ -22,7 +22,7 @@ export function checkForDuplicateLabels(schema: SchemaType) {
     }
   }
   catch(err: any) {
-    handleError("checkForDuplicateLabels ERROR:", err);
+    handleError("checkForDuplicateLabels", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }
@@ -43,7 +43,7 @@ export function schemaSyntaxValidator(schema: SchemaType) {
     return "Your schema uses valid syntax!";
   }
   catch(err: any) {
-    handleError("schemaValidator ERROR:", err);
+    handleError("schemaValidator", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }

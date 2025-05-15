@@ -5,8 +5,8 @@ import {
   convertQueryObjStrToJSObj, 
   convertQueryStringToArrayOfClauseObjs, 
   queryParser 
-} from "../query-parser";
-import { IRelationshipQueryObj } from "../types";
+} from "../src/query-parser";
+import { IRelationshipQueryObj } from "../src/types";
 
 
 describe("query-parser.ts", () => {

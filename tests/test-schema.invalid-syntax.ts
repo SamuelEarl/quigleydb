@@ -2,7 +2,7 @@
  * NOTES: See my schema notes in the `movie-schema.v1.ts` file.
  */
 
-import { INodeSchema, IRelationshipSchema } from "../types";
+import { INodeSchema, IRelationshipSchema } from "../src/types";
 
 const Student: INodeSchema = {
   type: "node",
