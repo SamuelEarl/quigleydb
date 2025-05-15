@@ -136,6 +136,7 @@ export function validateQueryObjAgainstSchema(schemaForQueryObj: INodeSchema | I
       if (property === "props") {
         const schemaForProps = schemaForQueryObj.props;
         // console.log("SCHEMA PROPS:", schemaForProps);
+        
         // TODO: I should probably turn the rest of this code into a function and create tests for it.
         // validateQueryObjAgainstSchema(schemaForProps, queryObj.props);
         for (const prop in schemaForProps) {
