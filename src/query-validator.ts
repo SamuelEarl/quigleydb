@@ -50,7 +50,7 @@ function checkForRequiredProps(queryObjProps: IAnyObject, prop: string) {
     );
 
     // // TODO: Maybe this will be a version 2 feature: If a user does not pass a property and corresponding param in a CREATE or MERGE clause, then Quigly will throw an error, unless the user provides a default value for that prop in the schema. If the user does not pass a property and param but does provide a default value in the schema, then the default value will be inserted into the database.
-    // if (schemaProps[prop]["default"]) {
+    // if (schemaForProps[prop]["default"]) {
     //   // Set the default value in the query string and in the params object. Is this too complex and unnecessary? Maybe I should just require users to specify all values in the query string and the params object instead of allowing users to define default values in the schema. Or I could require users to specify all values in the query string and I could populate the params object with the default value if they don't specify a param value. Since Cypher does not have a schema there is no way to define default values in Cypher, but I might want to change that with Quigley.
     // }
     // else {
@@ -134,12 +134,14 @@ export function validateQueryObjAgainstSchema(schemaForQueryObj: INodeSchema | I
       }
       // Loop over the `props` in the schema and validate each prop from the query object against the schema.
       if (property === "props") {
-        const schemaProps = schemaForQueryObj.props;
-        // console.log("SCHEMA PROPS:", schemaProps);
-        for (const prop in schemaProps) {
+        const schemaForProps = schemaForQueryObj.props;
+        // console.log("SCHEMA PROPS:", schemaForProps);
+        // TODO: I should probably turn the rest of this code into a function and create tests for it.
+        // validateQueryObjAgainstSchema(schemaForProps, queryObj.props);
+        for (const prop in schemaForProps) {
           console.log("PROP:", prop);
           // TODO: If the schema prop has nested props (e.g. the prop is an address with nested properties for city, state, street, zip), then I need to recursively loop over that nested object.
-          if (!("type" in schemaProps[prop])) {
+          if (!("type" in schemaForProps[prop])) {
             console.log("IMPLEMENT NESTED OBJECT INSPECTION!!!");
           }
           else {
@@ -156,26 +158,26 @@ export function validateQueryObjAgainstSchema(schemaForQueryObj: INodeSchema | I
               // The following `if` statement checks for this: If the props object exists and the prop from the current iteration of the `for` loop exists and the prop is *not* an `instanceof` the "type" from the schema, then throw an error.
               // TODO: This `if` statement won't work, but I think this post has a solution that will work: https://stackoverflow.com/a/40227447. I want to name my equivalent functions getTypeOf() and getInstanceOf().
               // See also https://stackoverflow.com/questions/899574/what-is-the-difference-between-typeof-and-instanceof-and-when-should-one-be-used.
-              if (queryObj.props[prop] && getInstanceOf(queryObj.props[prop], schemaProps[prop]["type"])) {
+              if (queryObj.props[prop] && getInstanceOf(queryObj.props[prop], schemaForProps[prop]["type"])) {
                 throw new Error(`The "${prop}" param's data type does not match the data type that is defined in the schema.`);
               }
 
               // Check the prop's `onlyOneValue` value.
-              if (schemaProps[prop]["onlyOneValue"]) {
+              if (schemaForProps[prop]["onlyOneValue"]) {
                 // Check if the prop value is a single value (as opposed to an array of values) from the `onlyOneValue` array. If the prop value is not one of the values from the `onlyOneValue` array, then throw an error.
-                if (!schemaProps[prop]["onlyOneValue"].includes(queryObj.props[prop])) {
+                if (!schemaForProps[prop]["onlyOneValue"].includes(queryObj.props[prop])) {
                   throw new Error(`The "${prop}" param is not one of the values that is defined in the "onlyOneValue" array property in the schema.`);
                 }
               }
 
               // Check the prop's `atLeastOneValue` value.
-              if (schemaProps[prop]["atLeastOneValue"]) {
+              if (schemaForProps[prop]["atLeastOneValue"]) {
                 // If the query obj's prop is *not* an array, then throw an error.
                 if (!Array.isArray(queryObj.props[prop])) {
                   throw new Error(`The value of the "${prop}" param should be an array that contains only values that are defined in the "atLeastOneValue" property in the schema.`);
                 }
                 // Check if each value in the query obj's prop array is defined in the schema's `atLeastOneValue` array. If the prop values are not all defined in the `atLeastOneValue` array, then throw an error.
-                const schemaPropArray = schemaProps[prop]["atLeastOneValue"];
+                const schemaPropArray = schemaForProps[prop]["atLeastOneValue"];
                 const queryPropArray = queryObj.props[prop];
                 if (!schemaPropArray.every((value: any) => queryPropArray.includes(value))) {
                   throw new Error(`The "${prop}" param contains values that are not defined in the "atLeastOneValue" array property in the schema.`);
@@ -183,13 +185,13 @@ export function validateQueryObjAgainstSchema(schemaForQueryObj: INodeSchema | I
               }
 
               // Check the prop's `allValues` value.
-              if (schemaProps[prop]["allValues"]) {
+              if (schemaForProps[prop]["allValues"]) {
                 // If the query obj's prop is *not* an array, then throw an error.
                 if (!Array.isArray(queryObj.props[prop])) {
                   throw new Error(`The value of the "${prop}" param should be an array that contains all the values that are defined in the "allValues" property in the schema.`);
                 }
                 // Check if all the values in the query obj's prop array are defined in the schema's `allValues` array. If the prop values are not all defined in the `allValues` array, then throw an error.
-                const schemaPropArray = schemaProps[prop]["allValues"];
+                const schemaPropArray = schemaForProps[prop]["allValues"];
                 const queryPropArray = queryObj.props[prop];
                 if (!isEqual(sortBy(schemaPropArray), sortBy(queryPropArray))) {
                   throw new Error(`The "${prop}" param does not contain the same values that are defined in the "allValues" array property in the schema.`);
