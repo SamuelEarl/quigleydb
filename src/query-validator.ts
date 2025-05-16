@@ -160,7 +160,6 @@ export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType:
         }
         validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType, updatedParentKey, schemaObjForNestedProps, nestedQueryObjProps);
       }
-      // TODO: Continue here...
       else {
         if (queryObjProps) {
           // TODO: Not every prop is required in every query. For example, a MATCH query might have only one prop or no props. So I need to figure out how to validate the queries based on the type of query. I guess it's only CREATE and MERGE queries that need to check for required properties because the data that gets entered into the database needs to include all required data. All other CRUD operations can just be validated for data types. So that might not be too difficult.
@@ -169,6 +168,7 @@ export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType:
             checkForRequiredProp(prop, queryObjProps);
           }
         
+          // TODO: Continue here...
           // TODO: Each of these prop checks needs to be in their own function so I can create unit tests for them.
 
           // Check if the prop's type from the schema matches the type that was passed as a param.
