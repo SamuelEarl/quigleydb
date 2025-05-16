@@ -15,6 +15,7 @@ import type {
   INodeSchema,
   IRelationshipSchema,
   PlainObjectType,
+  QueryClauseType,
 } from "./types";
 import { isINodeQueryObj, isIRelationshipQueryObj } from "./types";
 
@@ -119,19 +120,19 @@ export function findQueryObjSchema(dbSchema: IAnyObject, key: string, value: str
  * @param schemaForProps 
  * @param queryObjProps 
  */
-export function validateQueryObjPropsAgainstSchemaForProps(parentKey: string, schemaForProps: NestedObjectType, queryObjProps: PlainObjectType) {
+export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType: QueryClauseType, parentKey: string, schemaForProps: NestedObjectType, queryObjProps: PlainObjectType) {
   try {
     for (const prop in schemaForProps) {
       console.log("PROP:", prop);
       // TODO: If the schema prop has nested props (e.g. the prop is an address with nested properties for city, state, street, zip), then I need to recursively loop over that nested object.
-      // If the prop does _not_ have a "type" property, then call `validateQueryObjPropsAgainstSchemaForProps()` recursivley.
+      // If the prop does _not_ have a "type" property, then call `validateQueryObjPropsAgainstQueryObjPropsSchema` recursivley.
       if (!Object.hasOwn(schemaForProps[prop], "type")) {
-        console.log("IMPLEMENT RECURSIVE INVOCATION OF validateQueryObjPropsAgainstSchemaForProps()");
+        console.log("IMPLEMENT RECURSIVE INVOCATION OF validateQueryObjPropsAgainstQueryObjPropsSchema");
         // If the prop is an address with nested properties for city, state, street, zip (e.g. "address.city", "address.state"), then `parentKeyOfSchemaObjForNestedProps` would be "address".
         const parentKeyOfSchemaObjForNestedProps = prop;
         // Get the nested object. For example, if the prop is an address with nested properties for city, state, street, zip, then the nested object would be something like `{ street: { type: String, }, city: { type: String, }, state: { type: String, }, zip: { type: String, } }`.
         const schemaObjForNestedProps = schemaForProps[prop];
-        // Create an object of nested query props that will be passed to `validateQueryObjPropsAgainstSchemaForProps()` in a recursive call.
+        // Create an object of nested query props that will be passed to `validateQueryObjPropsAgainstQueryObjPropsSchema` in a recursive call.
         const nestedQueryObjProps = {};
         let updatedParentKey = "";
         // Loop over the queryObjProps that are passed into this function and pull out the nested props, which are any props that use dot notation in the key name (e.g. "address.street", "address.city").
@@ -151,13 +152,13 @@ export function validateQueryObjPropsAgainstSchemaForProps(parentKey: string, sc
           }
           // else: If neither of the previous conditional statements match, then the prop won't be added to the `nestedQueryObjProps` object.
         }
-        validateQueryObjPropsAgainstSchemaForProps(updatedParentKey, schemaObjForNestedProps, nestedQueryObjProps);
+        validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType, updatedParentKey, schemaObjForNestedProps, nestedQueryObjProps);
       }
       else {
         if (queryObjProps) {
           // TODO: Not every prop is required in every query. For example, a MATCH query might have only one prop or no props. So I need to figure out how to validate the queries based on the type of query. I guess it's only CREATE and MERGE queries that need to check for required properties because the data that gets entered into the database needs to include all required data. All other CRUD operations can just be validated for data types. So that might not be too difficult.
           // Check if the query object is part of a "CREATE" or "MERGE" clause. If a prop is defined in the schema, then it is considered to be required. So make sure that every prop has been defined in the query object along with a corresponding param. See my "Schema Definition Rules" in the README.md file.
-          if (queryClauseObj.clause.toUpperCase() === "CREATE" || queryClauseObj.clause.toUpperCase() === "MERGE") {
+          if (queryClauseType.toUpperCase() === "CREATE" || queryClauseType.toUpperCase() === "MERGE") {
             checkForRequiredProps(queryObjProps, prop);
           }
         
@@ -211,6 +212,10 @@ export function validateQueryObjPropsAgainstSchemaForProps(parentKey: string, sc
       }
     }
   }
+  catch(err: any) {
+    handleError("validateQueryObjPropsAgainstQueryObjPropsSchema", err);
+    throw err;
+  }
 }
 
 // TODO: Finish this function and write some tests for it.
@@ -219,31 +224,31 @@ export function validateQueryObjPropsAgainstSchemaForProps(parentKey: string, sc
  * @param schemaForQueryObj 
  * @param queryObj 
  */
-export function validateQueryObjAgainstSchema(schemaForQueryObj: INodeSchema | IRelationshipSchema, queryObj: INodeQueryObj | IRelationshipQueryObj) {
+export function validateQueryObjAgainstQueryObjSchema(queryClauseType: QueryClauseType, schemaForQueryObj: INodeSchema | IRelationshipSchema, queryObj: INodeQueryObj | IRelationshipQueryObj) {
   try {
     // Loop over the properties in the schemaForQueryObj and validate each one against the query object.
     for (const property in schemaForQueryObj) {
       // Check if the "type" matches between the schema for the query object and the query object. If they do not match, then throw an error.
       if (property === "type" && schemaForQueryObj.type !== queryObj.type) {
         // If there is not a type with the specified label in the schema, then throw an error.
-        throw new Error(`There is no ${queryObj.type} with the label "${queryObj.label}" in the schema. Check your query.`);
+        throw new Error(`There does not exist a "${queryObj.type}" in the schema with the label "${queryObj.label}". Check your query.`);
       }
       // Check if the "label" matches between the schema for the query object and the query object. If they do not match, then throw an error.
       if (property === "label" && schemaForQueryObj.label !== queryObj.label) {
         // If there is not a type with the specified label in the schema, then throw an error.
-        throw new Error(`There is no ${queryObj.type} with the label "${queryObj.label}" in the schema. Check your query.`);
+        throw new Error(`There does not exist a "${queryObj.type}" in the schema with the label "${queryObj.label}". Check your query.`);
       }
-      // Check if the schemaForQueryObj has a "props" property.
-      if (property === "props") {
+      // Check if the schemaForQueryObj has a "props" property and if props were passed with the queryObj.
+      if (property === "props" && queryObj.props && typeof queryObj.props === "object" && queryObj.props !== null) {
         const schemaForProps = schemaForQueryObj.props;
         // console.log("SCHEMA PROPS:", schemaForProps);
         // Loop over the `props` in the schema and validate each prop from the query object against the schema.
-        validateQueryObjPropsAgainstSchemaForProps("", schemaForProps!, queryObj.props);
+        validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType, "", schemaForProps!, queryObj.props);
       }
     }
   }
   catch(err: any) {
-    handleError("validateQueryObjAgainstSchema", err);
+    handleError("validateQueryObjAgainstQueryObjSchema", err);
     throw err;
   }
 }
@@ -268,7 +273,7 @@ export function queryValidator(queryClauseObjs: IQueryClauseObj[]) {
         console.log("SCHEMA FOR QUERY OBJ:", schemaForQueryObj);
         if (schemaForQueryObj && (isINodeQueryObj(schemaForQueryObj) || isIRelationshipQueryObj(schemaForQueryObj))) {
           // Validate the query object against the schema for the query object.
-          validateQueryObjAgainstSchema(schemaForQueryObj, queryObj);
+          validateQueryObjAgainstQueryObjSchema(queryClauseObj.type, schemaForQueryObj, queryObj);
         }
       });
     });

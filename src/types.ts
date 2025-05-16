@@ -20,14 +20,15 @@ interface IPropsSchema {
   // TODOS: Look at https://mongoosejs.com/docs/schematypes.html.
   // Scenarios when a JSON property in a database might make sense: Not all users may have access to the same features and sections of your application. Similarly, each user might configure your application based on their preferences. These are two common scenarios and involve data that changes a lot over time. This is because your application is likely to evolve, involving new configurations, views, features, and sections. As a result, you have to continuously update your relational schema to match the new data structure. This takes time and energy. Instead, you can store permissions and configurations in a JSON column directly connected to your user table. Also, JSON is a good data format for your permissions and configuration. In fact, your application is likely to treat this data in JSON format. See https://dev.to/writech/when-to-use-json-data-in-a-relational-database-4i0b
   type: PrimitiveConstructorTypesPlus;
-  required?: boolean;
   // If the prop value is a single value, then it must equal only one of the values from the `onlyOneValue` array. 
   onlyOneValue?: any;
   // If the prop value is an array of values, then it must contain at least one value from the `atLeastOneValue` array, but it can also contain multiple values from the `atLeastOneValue` array.
   atLeastOneValue?: any[];
   // If the prop value is an array of values, then it must contain all the values from the `allValues` array.
   allValues?: any[];
-  default?: any;
+  // I probably won't include these schema props. See the `SCHEMA_DEFINITION_RULES.md` file.
+  // required?: boolean;
+  // default?: any;
 }
 
 // Props schema: In order to allow infinitely nested objects (for props) in the user's schema but still require each prop in the schema to follow the required structure, we can simply reference the type recursively. See https://stackoverflow.com/a/73767780.
@@ -38,14 +39,14 @@ export type NestedObjectType = {
 export interface INodeSchema {
   type: "node";
   label: string;
-  alias?: string;
+  // alias?: string; // TODO: UPDATE: I don't think aliases should be defined in the schema. However, I might have to include an alias property here so TypeScript doesn't complain. If not, then I will delete this.
   props: NestedObjectType;
 }
 
 export interface IRelationshipSchema {
   type: "relationship";
   label: string;
-  alias?: string;
+  // alias?: string; // TODO: UPDATE: See the comment in the INodeSchema.
   from: INodeSchema;
   to: INodeSchema;
   direction: "bidirectional" | "directed";
@@ -55,14 +56,14 @@ export interface IRelationshipSchema {
 export type QueryObjType = "node" | "relationship";
 
 export interface INodeQueryObj {
-  type: QueryObjType;
+  type: "node";
   label: string;
   alias?: string;
   props?: PlainObjectType;
 }
 
 export interface IRelationshipQueryObj {
-  type: QueryObjType;
+  type: "relationship";
   label: string;
   alias?: string;
   from: INodeQueryObj | null;
@@ -71,8 +72,10 @@ export interface IRelationshipQueryObj {
   props?: PlainObjectType;
 }
 
+export type QueryClauseType = "MATCH" | "OPTIONAL MATCH" | "WHERE" | "RETURN" | "ORDER BY" | "SKIP" | "LIMIT" | "CREATE" | "MERGE" | "DELETE" | "REMOVE" | "SET" | "WITH" | "UNION" | "UNWIND" | "FOREACH" | "CALL";
+
 export interface IQueryClauseObj {
-  clause: string;
+  type: QueryClauseType;
   queryString: string;
   queryObjs: (INodeQueryObj|IRelationshipQueryObj)[];
 }

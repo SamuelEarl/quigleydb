@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/SamuelEarl/quigley-gql-middleware#readme",
   "scripts": {
-    "test": "vitest run --typecheck query-validator",
+    "_test": "vitest run --typecheck query-validator",
+    "test": "vitest run --typecheck",
     "_demo-project": "cd demo-project/src && NODE_ENV='development' node --test --loader ts-node/esm index.ts",
     "demo-project": "cd demo-project/src && NODE_ENV='development' bun run index.ts"
   },

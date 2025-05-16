@@ -239,14 +239,14 @@ describe("query-parser.ts", () => {
 
       const expectedResults = [
         {
-          clause: "CREATE",
+          type: "CREATE",
           queryString: `CREATE (s:Student {
           email: $email
         })`,
           queryObjs: [],
         },
         {
-          clause: "RETURN",
+          type: "RETURN",
           queryString: "RETURN s",
           queryObjs: [],
         },
@@ -279,7 +279,7 @@ describe("query-parser.ts", () => {
 
       const expectedResults = [
         {
-          clause: "CREATE",
+          type: "CREATE",
           queryString: `CREATE (s:Student {
           email: $email
         })`,
@@ -295,7 +295,7 @@ describe("query-parser.ts", () => {
           ],
         },
         {
-          clause: "RETURN",
+          type: "RETURN",
           queryString: "RETURN s",
           queryObjs: [],
         },

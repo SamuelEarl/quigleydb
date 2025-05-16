@@ -191,7 +191,7 @@ export function convertQueryObjStrToJSObj(type: QueryObjType, startIndex: number
  * This function takes the query string and converts it to an array of clause objects with this form:
  * [
  *   {
- *     clause: string;
+ *     type: string;
  *     queryString: string;
  *     queryObjs: []
  *   }
@@ -202,7 +202,7 @@ export function convertQueryObjStrToJSObj(type: QueryObjType, startIndex: number
 export function convertQueryStringToArrayOfClauseObjs(queryString: string,) {
   const queryClauseObjs: IQueryClauseObj[] = [];
   const queryClauseObjTemplate: IQueryClauseObj = {
-    clause: "",
+    type: "MATCH",
     queryString: "",
     queryObjs: [],
   };
@@ -214,9 +214,9 @@ export function convertQueryStringToArrayOfClauseObjs(queryString: string,) {
   while ((match = clausesRegex.exec(queryString)) !== null) {
     console.log(`Found "${match[0]}" at index ${match.index}.`);
     indexes.push(match.index);
-    // Create a copy of the `queryClauseObjTemplate`, set the `clause` property and push the `queryClauseObjTemplate` to the `queryClauseObjs` array.
+    // Create a copy of the `queryClauseObjTemplate`, set the `type` property and push the `queryClauseObjTemplate` to the `queryClauseObjs` array.
     const queryClauseObj = cloneDeep(queryClauseObjTemplate);
-    queryClauseObj.clause = match[0];
+    queryClauseObj.type = match[0];
     queryClauseObjs.push(queryClauseObj);
   }
   // console.log("INDEXES:", indexes);
@@ -266,7 +266,7 @@ export function queryParser(queryString: string, params?: PlainObjectType) {
     console.log("queryClauseObjs:", queryClauseObjs);
 
     queryClauseObjs.forEach((clauseObj: IQueryClauseObj) => {
-      if (clauseObj.clause === "CREATE" || clauseObj.clause === "MATCH") {
+      if (clauseObj.type === "CREATE" || clauseObj.type === "MATCH") {
         const queryString = clauseObj.queryString;
         let prevNodeClosingCharIndex = 0;
         for (let i = 0; i < queryString.length; i++) {
