@@ -151,7 +151,7 @@ describe("query-validator.ts", () => {
   });
 
   describe("checkForRequiredProp()", () => {
-    test("When all required query params are present, then no schema validation errors are thrown. When required query params are missing, then schema validation error is thrown.", () => {
+    test("When all required query params are present, then no schema validation errors are thrown. When required query params are missing, then schema validation errors are thrown.", () => {
       // SETUP
       const requiredProp1 = "firstName";
       const requiredProp2 = "age";
@@ -177,14 +177,24 @@ describe("query-validator.ts", () => {
 
       function invokeCheckForRequiredPropWithQueryParamMissing() {
         checkForRequiredProp(requiredProp2, queryObjProps);
-        // const results = checkForRequiredProp(requiredProp2, queryObjProps);
-        // throw new Error(results);
+      }
+
+      function invokeCheckForRequiredPropWithNoParamsObj() {
+        checkForRequiredProp(requiredProp1);
+      }
+
+      function invokeCheckForRequiredPropWithEmptyParamsObj() {
+        checkForRequiredProp(requiredProp1, {});
       }
 
       // EXECUTE and VERIFY
-      expect(invokeCheckForRequiredPropWithQueryParamPresent).not.toThrow();
+      const errorMsg1 = `All node properties are required in CREATE clauses. All relationship properties are required in MERGE clauses. The "${requiredProp1}" param is missing from the query.`;
+      const errorMsg2 = `All node properties are required in CREATE clauses. All relationship properties are required in MERGE clauses. The "${requiredProp2}" param is missing from the query.`;
 
-      expect(invokeCheckForRequiredPropWithQueryParamMissing).toThrowError(`All node properties are required in CREATE clauses. All relationship properties are required in MERGE clauses. The "${requiredProp2}" param is missing from the query.`);
+      expect(invokeCheckForRequiredPropWithQueryParamPresent).not.toThrow();
+      expect(invokeCheckForRequiredPropWithQueryParamMissing).toThrowError(errorMsg2);
+      expect(invokeCheckForRequiredPropWithNoParamsObj).toThrowError(errorMsg1);
+      expect(invokeCheckForRequiredPropWithEmptyParamsObj).toThrowError(errorMsg1);
     });
   });
 });
