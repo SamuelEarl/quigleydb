@@ -154,6 +154,7 @@ export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType:
         }
         validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType, updatedParentKey, schemaObjForNestedProps, nestedQueryObjProps);
       }
+      // TODO: Continue here...
       else {
         if (queryObjProps) {
           // TODO: Not every prop is required in every query. For example, a MATCH query might have only one prop or no props. So I need to figure out how to validate the queries based on the type of query. I guess it's only CREATE and MERGE queries that need to check for required properties because the data that gets entered into the database needs to include all required data. All other CRUD operations can just be validated for data types. So that might not be too difficult.
@@ -218,7 +219,6 @@ export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType:
   }
 }
 
-// TODO: Finish this function and write some tests for it.
 /**
  * Validate the query object against the schema for the query object.
  * @param schemaForQueryObj 
@@ -238,6 +238,7 @@ export function validateQueryObjAgainstQueryObjSchema(queryClauseType: QueryClau
         // If there is not a type with the specified label in the schema, then throw an error.
         throw new Error(`There does not exist a "${queryObj.type}" in the schema with the label "${queryObj.label}". Check your query.`);
       }
+      // TODO: Do I need to add tests to check the "props" property? Would that make sense or be valuable?
       // Check if the schemaForQueryObj has a "props" property and if props were passed with the queryObj.
       if (property === "props" && queryObj.props && typeof queryObj.props === "object" && queryObj.props !== null) {
         const schemaForProps = schemaForQueryObj.props;
