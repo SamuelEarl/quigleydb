@@ -44,20 +44,26 @@ function getInstanceOf(obj: PrimitiveTypesPlus, type: any) {
  * @param queryObjProps 
  * @param prop 
  */
-function checkForRequiredProps(queryObjProps: IAnyObject, prop: string) {
-  // The following `if` statement checks for this: If no props object exists or the props object is empty or the prop from the current iteration of the `for` loop does not exist, then throw an error.
-  if (!queryObjProps || Object.keys(queryObjProps).length === 0 || !queryObjProps[prop]) {
-    throw new Error(
-      `All node and relationship properties are required in CREATE and MERGE clauses. The "${prop}" property is missing from the query.`
-    );
+export function checkForRequiredProp(prop: string, queryObjProps: PlainObjectType) {
+  try {
+    // The following `if` statement checks for this: If the queryObjProps object does not exist or the queryObjProps object is empty or the queryObjProps property (i.e. query parameter) that corresponds to the prop that was passed to this function (which is a required prop) does not exist, then throw an error.
+    if (!queryObjProps || Object.keys(queryObjProps).length === 0 || !queryObjProps[prop]) {
+      throw new Error(
+        `All node properties are required in CREATE clauses. All relationship properties are required in MERGE clauses. The "${prop}" param is missing from the query.`
+      );
 
-    // // TODO: Maybe this will be a version 2 feature: If a user does not pass a property and corresponding param in a CREATE or MERGE clause, then Quigly will throw an error, unless the user provides a default value for that prop in the schema. If the user does not pass a property and param but does provide a default value in the schema, then the default value will be inserted into the database.
-    // if (schemaForProps[prop]["default"]) {
-    //   // Set the default value in the query string and in the params object. Is this too complex and unnecessary? Maybe I should just require users to specify all values in the query string and the params object instead of allowing users to define default values in the schema. Or I could require users to specify all values in the query string and I could populate the params object with the default value if they don't specify a param value. Since Cypher does not have a schema there is no way to define default values in Cypher, but I might want to change that with Quigley.
-    // }
-    // else {
-    //   throw new Error(`All node and relationship properties are required in CREATE and MERGE clauses. ${prop} is missing from the query.`);
-    // }
+      // // TODO: Maybe this will be a version 2 feature: If a user does not pass a property and corresponding param in a CREATE or MERGE clause, then Quigly will throw an error, unless the user provides a default value for that prop in the schema. If the user does not pass a property and param but does provide a default value in the schema, then the default value will be inserted into the database.
+      // if (schemaForProps[prop]["default"]) {
+      //   // Set the default value in the query string and in the params object. Is this too complex and unnecessary? Maybe I should just require users to specify all values in the query string and the params object instead of allowing users to define default values in the schema. Or I could require users to specify all values in the query string and I could populate the params object with the default value if they don't specify a param value. Since Cypher does not have a schema there is no way to define default values in Cypher, but I might want to change that with Quigley.
+      // }
+      // else {
+      //   throw new Error(`All node and relationship properties are required in CREATE and MERGE clauses. ${prop} is missing from the query.`);
+      // }
+    }
+  }
+  catch(err: any) {
+    handleError("checkForRequiredProp", err);
+    throw err;
   }
 }
 
@@ -94,7 +100,7 @@ export function findQueryObjSchema(dbSchema: IAnyObject, key: string, value: str
   // console.log("SCHEMA:", dbSchema);
   // console.log("KEY:", key, "VALUE:", value);
   if (typeof dbSchema !== "object" || dbSchema === null) {
-    console.log("Schema is not an object");
+    // console.log("Schema is not an object");
     return null;
   }
 
@@ -158,9 +164,9 @@ export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType:
       else {
         if (queryObjProps) {
           // TODO: Not every prop is required in every query. For example, a MATCH query might have only one prop or no props. So I need to figure out how to validate the queries based on the type of query. I guess it's only CREATE and MERGE queries that need to check for required properties because the data that gets entered into the database needs to include all required data. All other CRUD operations can just be validated for data types. So that might not be too difficult.
-          // Check if the query object is part of a "CREATE" or "MERGE" clause. If a prop is defined in the schema, then it is considered to be required. So make sure that every prop has been defined in the query object along with a corresponding param. See my "Schema Definition Rules" in the README.md file.
+          // Check if the query object is part of a "CREATE" or "MERGE" clause. If a prop is defined in the schema, then it is considered to be required. So make sure that every prop has been defined in the query object and check if a corresponding param has been included in the query. See my "Schema Definition Rules" in the README.md file.
           if (queryClauseType.toUpperCase() === "CREATE" || queryClauseType.toUpperCase() === "MERGE") {
-            checkForRequiredProps(queryObjProps, prop);
+            checkForRequiredProp(prop, queryObjProps);
           }
         
           // TODO: Each of these prop checks needs to be in their own function so I can create unit tests for them.
@@ -208,7 +214,6 @@ export function validateQueryObjPropsAgainstQueryObjPropsSchema(queryClauseType:
               throw new Error(`The "${prop}" param does not contain the same values that are defined in the "allValues" array property in the schema.`);
             }
           }
-
         }
       }
     }

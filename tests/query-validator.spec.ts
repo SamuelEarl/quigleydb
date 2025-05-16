@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
   findQueryObjSchema,
-  validateQueryObjAgainstQueryObjSchema
+  validateQueryObjAgainstQueryObjSchema,
+  checkForRequiredProp,
 } from "../src/query-validator";
 import { schema as validSchemaSyntax } from "./test-schema.valid-syntax";
 import { INodeQueryObj, IRelationshipQueryObj } from "../src/types";
@@ -58,7 +59,7 @@ describe("query-validator.ts", () => {
     });
   });
 
-  describe('validateQueryObjAgainstQueryObjSchema()', () => {
+  describe("validateQueryObjAgainstQueryObjSchema()", () => {
     test("no schema errors should be thrown when called with a valid node query object", () => {
       // SETUP
       const studentNodeQueryObj: INodeQueryObj = {
@@ -146,6 +147,44 @@ describe("query-validator.ts", () => {
 
       // EXECUTE and VERIFY
       expect(invokeValidateQueryObjAgainstQueryObjSchema).toThrowError(`There does not exist a "${relationshipQueryObj.type}" in the schema with the label "${relationshipQueryObj.label}". Check your query.`)
+    });
+  });
+
+  describe("checkForRequiredProp()", () => {
+    test("When all required query params are present, then no schema validation errors are thrown. When required query params are missing, then schema validation error is thrown.", () => {
+      // SETUP
+      const requiredProp1 = "firstName";
+      const requiredProp2 = "age";
+
+      const queryObjProps = {
+        id: "1234",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+        // age: 20, // In this example, the query params are missing an `age` param, which means that the queryObjProps will also be missing an `age` prop.
+        "address.street": "123 Main",
+        "address.city": "Somewhere",
+        "address.state": "AZ",
+        "address.zip": "12345",
+        roles: ["student"],
+        classYear: "junior",
+        misc: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}',
+      }
+
+      function invokeCheckForRequiredPropWithQueryParamPresent() {
+        checkForRequiredProp(requiredProp1, queryObjProps);
+      }
+
+      function invokeCheckForRequiredPropWithQueryParamMissing() {
+        checkForRequiredProp(requiredProp2, queryObjProps);
+        // const results = checkForRequiredProp(requiredProp2, queryObjProps);
+        // throw new Error(results);
+      }
+
+      // EXECUTE and VERIFY
+      expect(invokeCheckForRequiredPropWithQueryParamPresent).not.toThrow();
+
+      expect(invokeCheckForRequiredPropWithQueryParamMissing).toThrowError(`All node properties are required in CREATE clauses. All relationship properties are required in MERGE clauses. The "${requiredProp2}" param is missing from the query.`);
     });
   });
 });
