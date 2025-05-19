@@ -39,13 +39,13 @@ const Student: INodeSchema = {
     },
     roles: {
       type: [String],
-      // The user's `roles` array can contain one or many values from the `atLeastOne` array.
+      // The user's `roles` array can contain one or many values from the `atLeastOneValue` array.
       atLeastOneValue: ["student", "employee", "athlete"],
       // EXAMPLE VALUE: ["student"]
     },
     classYear: {
       type: String,
-      // The user's `classYear` can only be one of the values from the `onlyOne` array.
+      // The user's `classYear` can only be one of the values from the `onlyOneValue` array.
       onlyOneValue: ["freshman", "sophomore", "junior", "senior"],
       // EXAMPLE VALUE: "freshman",
     },

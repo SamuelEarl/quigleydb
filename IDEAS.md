@@ -1,5 +1,20 @@
 # GQL Middleware Ideas
 
+Maybe this won't work as a middleware, unless that middleware lives in the database code. The following bullet points are a workflow that I might use as I develop this project. 
+
+Maybe I need to create a Node.js middleware first and use that as a prototype to test these ideas. If the prototype works, then I can present this to the FalkorDB team as a feature request that is implemented in the database.
+
+1. Create a schema file. Along with node and relationship definitions, this file should include indexes and constraints that need to be created in the database. 
+    1. Decide on the syntax of the file. Maybe it should use a similar syntax that Cypher uses to create indexes and constraints, which are similar to SQL and SurrealQL schema file syntax. Or maybe it would be better to create a new syntax that is more object-based, similar to GraphQL.
+    2. Figure out how to ingest that schema file through a FalkorDB CLI so the schema is applied to the database. It looks like Falkor had a redis-cli.
+    3. Figure out a file type and create a syntax highlighter/formatter for VSCode for the file type.
+2. Each query should be validated against the schema that is stored in the database.
+    1. No matter which language is used in the server-side code, each query probably gets translated into a syntax that the database understands before the query is processed by the database. So I need to figure out where the translated queries occur in the database or the language drivers and validate the query against the schema using the translated queries instead of trying to create a query validator for only one language (e.g. JavaScript or Python). UPDATE: The query strings that are used in the language drivers are the same ones that are used in the data browser, so maybe there isn't a query translation that the database uses.
+3. Query results should have an option to be formatted as a hierarchical data structure. 
+4. Automate schema migrations.
+
+---
+
 I want to create a GQL middleware for FalkorDB that uses these ideas:
 
 1. Implement schema validation. See Mongoose.js (https://mongoosejs.com/docs/validation.html).
