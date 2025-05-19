@@ -1,35 +1,28 @@
-# NOTES: See my "Schema Definition Rules" in the README.md file.
-
-node Student {
+const Student = {
+  type: "node",
+  label: "Student",
   props: {
     id: String,
     firstName: String,
     lastName: String,
     email: String,
-    age: Int,
+    age: Number,
     address: {
       street: String,
       city: String,
       state: String,
-      zip: {
-        type: String, # Zip codes are strings because integers can't represent a leading zero and also because other countries might use letters, spaces, or dashes.
-      },
+      zip: String, 
     },
     roles: {
       type: [String],
-      # The user's `roles` array can contain one or many values from the `atLeastOneValue` array.
       atLeastOneValue: ["student", "employee", "athlete"],
-      # EXAMPLE VALUE: ["student"]
     },
     classYear: {
       type: String,
-      # The user's `classYear` can only be one of the values from the `onlyOneValue` array.
       onlyOneValue: ["freshman", "sophomore", "junior", "senior"],
-      # EXAMPLE VALUE: "freshman",
     },
     misc: {
       type: JSON,
-      # EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
     },
   },
   indexes: [
@@ -40,7 +33,9 @@ node Student {
   ],
 };
 
-node Course {
+const Course = {
+  type: "node",
+  label: "Course",
   props: {
     title: String,
     subject: String,
@@ -49,7 +44,9 @@ node Course {
   constraints: [],
 };
 
-relation ENROLLED_IN {
+const ENROLLED_IN = {
+  type: "relation",
+  label: "ENROLLED_IN",
   from: Student,
   to: Course,
   direction: "bidirectional",
@@ -60,9 +57,11 @@ relation ENROLLED_IN {
   },
   indexes: [],
   constraints: [],
-}
+};
 
-node Instructor {
+const Instructor = {
+  type: "node",
+  label: "Instructor",
   props: {
     firstName: String,
     lastName: String,
@@ -72,7 +71,9 @@ node Instructor {
   constraints: [],
 };
 
-relation COURSE_INSTRUCTOR {
+const COURSE_INSTRUCTOR = {
+  type: "relation",
+  label: "COURSE_INSTRUCTOR",
   from: Course,
   to: Instructor,
   direction: "directed",
@@ -83,4 +84,12 @@ relation COURSE_INSTRUCTOR {
   },
   indexes: [],
   constraints: [],
+};
+
+export const schema = {
+  Student,
+  Course,
+  ENROLLED_IN,
+  Instructor,
+  COURSE_INSTRUCTOR,
 };
