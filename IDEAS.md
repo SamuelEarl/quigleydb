@@ -4,14 +4,23 @@ Maybe this won't work as a middleware, unless that middleware lives in the datab
 
 Maybe I need to create a Node.js middleware first and use that as a prototype to test these ideas. If the prototype works, then I can present this to the FalkorDB team as a feature request that is implemented in the database.
 
-1. Create a schema file. Along with node and relationship definitions, this file should include indexes and constraints that need to be created in the database. 
+1. Create a schema file. Along with node and relationship definitions, this file should include indexes and constraints that need to be created/updated in the database. 
     1. Decide on the syntax of the file. Maybe it should use a similar syntax that Cypher uses to create indexes and constraints, which are similar to SQL and SurrealQL schema file syntax. Or maybe it would be better to create a new syntax that is more object-based, similar to GraphQL.
-    2. Figure out how to ingest that schema file through a FalkorDB CLI so the schema is applied to the database. It looks like Falkor had a redis-cli.
-    3. Figure out a file type and create a syntax highlighter/formatter for VSCode for the file type.
+        1. I have created a `schema.experiment.gql` file (in the `schema-ideas` folder) that uses a similar syntax to GraphQL schema files, but also combines some ideas from Mongoose.js and SurrealDB's edge tables.
+        2. Look at https://graphql.org/learn/schema/ for more schema ideas and data type ideas.
+        3. I like the file extension `.gqls` for Graph Query Language Standard. I might also support something like `.gqliso`.
+    2. Figure out how to ingest that schema file through a FalkorDB CLI so the schema is applied to the database. It looks like Falkor has a redis-cli.
+        1. This might be a good starting point for understanding how to ingest files: https://stackoverflow.com/a/74881523
+    3. Figure out a file type and create a syntax highlighter/formatter for VSCode for the file type. Look at the GraphQL extensions in VSCode to see how they handle stuff.
+    4. Would it be helpful if indexes and constraints could be applied separately from the node and relationship definitions or should all schema definitions be applied at the same time so that indexes/constraints stay insync with node and relationship definitions? Maybe the latter idea would be best.
+        1. I need to do some research about how other databases handle their schema definitions and migrations.
+        2. How do they handle how indexes and constraints are defined and applied? For example, in a SQL database, are data definitions along with indexes/constraints all defined in the same `.sql` file? And are any updates to the schema definitions all applied at the same time during a schema migration?
+        3. Maybe the CLI could take an option like `--indexes`, which would scan the indexes in the schema file and only create/update/delete the indexes in the database. The same could be available for `--constraints`.
 2. Each query should be validated against the schema that is stored in the database.
     1. No matter which language is used in the server-side code, each query probably gets translated into a syntax that the database understands before the query is processed by the database. So I need to figure out where the translated queries occur in the database or the language drivers and validate the query against the schema using the translated queries instead of trying to create a query validator for only one language (e.g. JavaScript or Python). UPDATE: The query strings that are used in the language drivers are the same ones that are used in the data browser, so maybe there isn't a query translation that the database uses.
-3. Query results should have an option to be formatted as a hierarchical data structure. 
-4. Automate schema migrations.
+3. Query results should have an option to be formatted as a hierarchical data structure.
+    1. See [Using Cypher to return nested, hierarchical JSON from a tree](https://stackoverflow.com/questions/34234373/using-cypher-to-return-nested-hierarchical-json-from-a-tree)
+4. Automate schema migrations with a CLI.
 
 ---
 

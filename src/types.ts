@@ -41,6 +41,8 @@ export interface INodeSchema {
   label: string;
   // alias?: string; // TODO: UPDATE: I don't think aliases should be defined in the schema. However, I might have to include an alias property here so TypeScript doesn't complain. If not, then I will delete this.
   props: NestedObjectType;
+  indexes?: string[];
+  constraints?: string[];
 }
 
 export interface IRelationshipSchema {
@@ -51,6 +53,8 @@ export interface IRelationshipSchema {
   to: INodeSchema;
   direction: "bidirectional" | "directed";
   props?: NestedObjectType;
+  indexes?: string[];
+  constraints?: string[];
 }
 
 export type QueryObjType = "node" | "relationship";

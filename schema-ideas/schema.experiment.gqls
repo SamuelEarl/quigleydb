@@ -1,0 +1,86 @@
+# NOTES: See my "Schema Definition Rules" in the README.md file.
+
+node Student {
+  props: {
+    id: String,
+    firstName: String,
+    lastName: String,
+    email: String,
+    age: Int,
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zip: {
+        type: String, # Zip codes are strings because integers can't represent a leading zero and also because other countries might use letters, spaces, or dashes.
+      },
+    },
+    roles: {
+      type: [String],
+      # The user's `roles` array can contain one or many values from the `atLeastOneValue` array.
+      atLeastOneValue: ["student", "employee", "athlete"],
+      # EXAMPLE VALUE: ["student"]
+    },
+    classYear: {
+      type: String,
+      # The user's `classYear` can only be one of the values from the `onlyOneValue` array.
+      onlyOneValue: ["freshman", "sophomore", "junior", "senior"],
+      # EXAMPLE VALUE: "freshman",
+    },
+    misc: {
+      type: JSON,
+      # EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
+    },
+  },
+  indexes: [
+    "CREATE INDEX student_id_index FOR (s:Student) ON (s.id)"
+  ],
+  constraints: [
+    "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
+  ],
+};
+
+node Course {
+  props: {
+    title: String,
+    subject: String,
+  },
+  indexes: [],
+  constraints: [],
+};
+
+relation ENROLLED_IN {
+  from: Student,
+  to: Course,
+  direction: "bidirectional",
+  props: {
+    enrollmentDate: {
+      type: Date,
+    },
+  },
+  indexes: [],
+  constraints: [],
+}
+
+node Instructor {
+  props: {
+    firstName: String,
+    lastName: String,
+    email: String,
+  },
+  indexes: [],
+  constraints: [],
+};
+
+relation COURSE_INSTRUCTOR {
+  from: Course,
+  to: Instructor,
+  direction: "directed",
+  props: {
+    instructingCourseSince: {
+      type: Date,
+    },
+  },
+  indexes: [],
+  constraints: [],
+};

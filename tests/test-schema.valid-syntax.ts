@@ -54,6 +54,12 @@ const Student: INodeSchema = {
       // EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
     }
   },
+  indexes: [
+    "CREATE INDEX student_id_index FOR (s:Student) ON (s.id)"
+  ],
+  constraints: [
+    "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
+  ],
 };
 
 const Course: INodeSchema = {
@@ -67,6 +73,8 @@ const Course: INodeSchema = {
       type: String,
     },
   },
+  indexes: [],
+  constraints: [],
 };
 
 const ENROLLED_IN: IRelationshipSchema = {
@@ -80,6 +88,8 @@ const ENROLLED_IN: IRelationshipSchema = {
       type: Date,
     },
   },
+  indexes: [],
+  constraints: [],
 }
 
 const Instructor: INodeSchema = {
@@ -96,6 +106,8 @@ const Instructor: INodeSchema = {
       type: String,
     },
   },
+  indexes: [],
+  constraints: [],
 };
 
 const COURSE_INSTRUCTOR: IRelationshipSchema = {
@@ -109,6 +121,8 @@ const COURSE_INSTRUCTOR: IRelationshipSchema = {
       type: Date,
     },
   },
+  indexes: [],
+  constraints: [],
 };
 
 export const schema = {
