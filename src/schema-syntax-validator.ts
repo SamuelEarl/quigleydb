@@ -198,9 +198,15 @@ export async function schemaSyntaxValidator(schemasDir: string = config.schemasD
     await convertGQLSchemaToTypeScriptSchema(absoluteSchemaFilepath);
 
     console.log("filepath:", `${absoluteSchemaFilepath}${fileExtension}`);
-    const module = await import(`${absoluteSchemaFilepath}${fileExtension}`);
+    let module;
+    try {
+      module = await import(`${absoluteSchemaFilepath}${fileExtension}`);
+    }
+    catch(err: any) {
+      throw new Error(`Schema objects must be unique. A schema object named ${err.message}.`);
+    }
 
-    // TODO: Since the labels will be auto-generated based on the schema.gqls file, I need to update this function. Do I still need to check for duplicates? Should I throw an error that would make more sense to users who are working with the schema.gqls files?
+    // TODO: Since the labels will be auto-generated based on the schema.gqls file, I need to update this function. Do I still need to check for duplicates? Should I throw an error that would make more sense to users who are working with the schema.gqls files? Maybe throwing the error above addresses this issue now and the `checkForDuplicateLabels()` function is no longer needed.
     checkForDuplicateLabels(module.schema);
 
     // Check if nodes have all of the properties from the types.ts file.
