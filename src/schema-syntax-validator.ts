@@ -117,13 +117,6 @@ export async function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string)
       });
       schemaExport += `};${EOL}`;
       output.write(schemaExport);
-
-
-      // output.write(`export const schema = {${EOL}`);
-      // labels.forEach(label => {
-      //   output.write(`  ${label},${EOL}`);
-      // });
-      // output.write(`};${EOL}`);
       output.end();
       console.log("Finished writing to file.");
 
