@@ -58,11 +58,13 @@ If any suites/tests are marked with `describe.skip()`/`test.skip()`, then those 
 See [Vitest API](https://vitest.dev/api/).
 
 
-### How to run the code in the `demo-project` directory
+### How to run individual functions or the code in the `demo-project` directory
+
+Look at the Makefile for some commands that can be used to run code in this project.
 
 This project was created using the Bun runtime. You can follow the instruction on Bun's website to [install Bun on your computer](https://bun.sh/docs/installation).
 
-You can run the entire Quigley library with `bun` by running `bun run demo-project` from the project root directory.
+Using npm scripts: You can run the entire Quigley library with `bun` by running `bun run demo-project` from the project root directory.
 
 ---
 

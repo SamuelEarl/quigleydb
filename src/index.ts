@@ -24,10 +24,12 @@ export async function quigley(
   formatQueryResultsHierarchically = configs.formatQueryResultsHierarchically
 ) {
   try {
+    // TODO: I think I can remove the call to the schemaSyntaxValidator() function.
+    // UPDATE: I don't think it makes sense to run the schema syntax validator before each query. But it does make sense to run the schema file through a CLI to verify that the syntax is correct. Read my notes in the `schema-styntax-validator.ts` file.
     // Validate the schema to make sure that it contains the correct schema definitions for Nodes (INodeSchema types) and Relationships (IRelationshipSchema types) and that each property within each schema definition is formatted correctly.
-    if (configs.validateSchemaInEnvs.includes(NODE_ENV!)) {
-      schemaSyntaxValidator(configs.schema);
-    }
+    // if (configs.validateSchemaInEnvs.includes(NODE_ENV!)) {
+    //   schemaSyntaxValidator(configs.schema);
+    // }
 
     let queryClauseObjs: IQueryClauseObj[] = [];
 

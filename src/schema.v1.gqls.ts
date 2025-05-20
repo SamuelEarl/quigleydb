@@ -26,10 +26,10 @@ const Student = {
     },
   },
   indexes: [
-    "CREATE INDEX student_id_index FOR (s:Student) ON (s.id)"
+    "CREATE INDEX student_id_index FOR (s:Student) ON (s.id)",
   ],
   constraints: [
-    "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
+    "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE",
   ],
 };
 
@@ -51,9 +51,8 @@ const ENROLLED_IN = {
   to: Course,
   direction: "bidirectional",
   props: {
-    enrollmentDate: {
-      type: Date,
-    },
+    enrollmentDate: Date,
+    grade: Number,
   },
   indexes: [],
   constraints: [],
@@ -78,9 +77,7 @@ const COURSE_INSTRUCTOR = {
   to: Instructor,
   direction: "directed",
   props: {
-    instructingCourseSince: {
-      type: Date,
-    },
+    instructingCourseSince: Date,
   },
   indexes: [],
   constraints: [],
