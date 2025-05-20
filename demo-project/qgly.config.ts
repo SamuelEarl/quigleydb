@@ -1,6 +1,6 @@
 import { schema } from "./src/db/schemas/school-schema.v1";
 
-export const configs = {
+export const config = {
   schema,
   validateSchemaInEnvs: ["development"],
   validateQueryInEnvs: ["development", "test", "staging"], // Define the environments where queries should be validated against the schema. Queries are set during development and don't change after that. So if the queries are validated during development, then I don't think they need to be validated in production. This will make the queries faster in production because the query validation step can be skipped.

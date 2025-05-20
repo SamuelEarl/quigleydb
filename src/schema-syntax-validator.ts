@@ -1,9 +1,12 @@
-import * as readline from "node:readline";
+import * as readline from "node:readline/promises";
 import * as fs from "fs";
 import { EOL } from "os";
-import path from "path";
+import * as path from "path";
+import { config } from "../qgly.config";
 import { handleError } from "./utils";
 import { SchemaType } from "./types";
+
+const fileExtension = ".js";
 
 /**
  * This function will create a string of a JavaScript object, which will be written to a `.ts` file.
@@ -40,13 +43,17 @@ export function createSchemaObj(schemaObjType: string, schemaObjString: string) 
  * This function will remove all comments from the `schema.gqls` file (i.e. everything after a # sign), convert the `schema.gqls` node and relation schema objects to JavaScript objects, and write those JavaScript objects to a new `schema.gqls.ts` file. That `schema.gqls.ts` file will be used to validate the GQL queries.
  * @param schemaFilepath 
  */
-export function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string) {
+export async function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string) {
   try {
-    const filename = path.basename(schemaFilepath) + ".ts";
-    const input = fs.createReadStream(schemaFilepath);
+    console.log("schemaFilepath:", schemaFilepath);
+    const filename = schemaFilepath + fileExtension;
+    const input = fs.createReadStream(path.resolve(schemaFilepath));
     const output = fs.createWriteStream(filename, { encoding: "utf8" });
     // Create a readable stream from a file. The readline module reads the file line by line, but from a readable stream only.
-    const rl = readline.createInterface({ input });
+    const rl = readline.createInterface({
+      input,
+      crlfDelay: Infinity, // To handle both Windows and Unix line endings. This treats `\r\n` as a single newline on Windows machines.
+    });
 
     let schemaObjString = "";
     const labels: string[] = [];
@@ -104,19 +111,36 @@ export function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string) {
 
     rl.on("close", () => {
       // Write the schema export at the end of the file.
-      output.write(`export const schema = {${EOL}`);
+      let schemaExport = `export const schema = {${EOL}`;
       labels.forEach(label => {
-        output.write(`  ${label},${EOL}`);
+        schemaExport += `  ${label},${EOL}`;
       });
-      output.write(`};${EOL}`);
+      schemaExport += `};${EOL}`;
+      output.write(schemaExport);
+
+
+      // output.write(`export const schema = {${EOL}`);
+      // labels.forEach(label => {
+      //   output.write(`  ${label},${EOL}`);
+      // });
+      // output.write(`};${EOL}`);
       output.end();
       console.log("Finished writing to file.");
+
+    });
+
+    // The following Promise will allow the execution of this `convertGQLSchemaToTypeScriptSchema()` function to be awaited before execution is returned to the calling function.
+    await new Promise<void>((resolve) => {
+      output.on("finish", () => {
+        console.log("Finished processing and writing.");
+        resolve();
+      });
     });
 
     rl.on("error", (err) => {
       console.error("An error occurred:", err);
       output.end(); // Ensure the output stream is closed in case of error.
-  });
+    });
   }
   catch(err: any) {
     handleError("convertGQLSchemaToTypeScriptSchema", err);
@@ -128,6 +152,7 @@ export function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string) {
 
 export function checkForDuplicateLabels(schema: SchemaType) {
   try {
+    console.log("schema:", schema);
     const labels: string[] = [];
     // Loop through the schema object.
     for (const schemaKey in schema) {
@@ -152,22 +177,31 @@ export function checkForDuplicateLabels(schema: SchemaType) {
   }
 }
 
-// TODO: Figure out how to run this file and the `schemaSyntaxValidator()` function through a CLI. I want users to run the schema file through the CLI (`qgly validate schema.v1.gqls`), which will run the `schemaSyntaxValidator()` function, convert the file to a TypeScript file, and validate the schema syntax (i.e. verify that the user is using the correct syntax for their schema).
+
+// TODO: Figure out how to run this file and the `schemaSyntaxValidator()` function through a CLI. I want users to run the schema file through the CLI (`qgly validate schema`), which will run the `schemaSyntaxValidator()` function, convert the file to a TypeScript file, and validate the schema syntax (i.e. verify that the user is using the correct syntax for their schema).
+// TODO: I want this function to read from the config file when they run `qgly validate schema`, so I will need to figure out how to do that after this projected is turned into a package.
 
 /**
  * This function will validate the schema to make sure that it contains the correct schema definitions for Nodes (INodeSchema types) and Relationships (IRelationshipSchema types) and that each property within each schema definition is formatted correctly. 
  * This function is only intended to check the schema file and validate that it uses correct syntax. This function is *not* intended to validate that queries follow the schema that has been defined. That is handled in the query-validator.ts file.
- * @param schema 
+ * @param schemaFile 
  * @returns 
  */
-// export function schemaSyntaxValidator(schema: SchemaType) {
-export async function schemaSyntaxValidator(schemaFilepath: string) {
+export async function schemaSyntaxValidator(schemasDir: string = config.schemasDir, schemaFile: string = config.schema) {
   try {
-    // Convert the gqls.schema file to a TypeScript schema file, which will be used to validate the queries.
-    convertGQLSchemaToTypeScriptSchema(schemaFilepath);
+    // console.log("schemasDir:", schemasDir);
+    // console.log("schemaFile:", schemaFile);
+    const absoluteSchemaFilepath = `${schemasDir}/${schemaFile}`;
+    console.log("absoluteSchemaFilepath:", absoluteSchemaFilepath);
 
-    const schema = await import(schemaFilepath + ".ts")
-    checkForDuplicateLabels(schema);
+    // Convert the gqls.schema file to a TypeScript schema file, which will be used to validate the queries.
+    await convertGQLSchemaToTypeScriptSchema(absoluteSchemaFilepath);
+
+    console.log("filepath:", `${absoluteSchemaFilepath}${fileExtension}`);
+    const module = await import(`${absoluteSchemaFilepath}${fileExtension}`);
+
+    // TODO: Since the labels will be auto-generated based on the schema.gqls file, I need to update this function. Do I still need to check for duplicates? Should I throw an error that would make more sense to users who are working with the schema.gqls files?
+    checkForDuplicateLabels(module.schema);
 
     // Check if nodes have all of the properties from the types.ts file.
 
@@ -178,7 +212,7 @@ export async function schemaSyntaxValidator(schemaFilepath: string) {
     return "Your schema uses valid syntax!";
   }
   catch(err: any) {
-    handleError("schemaValidator", err);
+    handleError("schemaSyntaxValidator", err);
     // This `throw err` statement is necessary to prevent TypeScript errors.
     throw err;
   }
@@ -191,9 +225,12 @@ const args = process.argv.slice(2);
 console.log("ARGS:", args);
 
 // Calling the function with the argument
-if (args.length > 0) {
+if (args.length === 2) {
   eval(`${args[0]}("${args[1]}")`);
-} 
-else {
+}
+else if (args.length === 1) {
+  eval(`${args[0]}()`);
+}
+else if (args.length === 0) {
   console.log('Please provide a function name and a filepath as arguments (e.g. "./schema.v1.gqls")');
 }

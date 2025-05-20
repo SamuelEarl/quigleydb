@@ -44,6 +44,17 @@ const Course = {
   constraints: [],
 };
 
+const Course = {
+  type: "node",
+  label: "Course",
+  props: {
+    title: String,
+    subject: String,
+  },
+  indexes: [],
+  constraints: [],
+};
+
 const ENROLLED_IN = {
   type: "relation",
   label: "ENROLLED_IN",
@@ -85,6 +96,7 @@ const COURSE_INSTRUCTOR = {
 
 export const schema = {
   Student,
+  Course,
   Course,
   ENROLLED_IN,
   Instructor,

@@ -1,5 +1,5 @@
 import { isEqual, sortBy } from "lodash";
-import { configs } from "./qgly.config";
+import { config } from "../qgly.config";
 import { handleError } from "./utils";
 import type {
   IAnyObject,
@@ -271,11 +271,11 @@ export function queryValidator(queryClauseObjs: IQueryClauseObj[]) {
 
     queryClauseObjs.forEach((queryClauseObj: IQueryClauseObj) => {
       queryClauseObj.queryObjs.forEach((queryObj) => {
-        // console.log("DATABASE SCHEMA:", configs.schema);
+        // console.log("DATABASE SCHEMA:", config.schema);
         console.log("QUERY OBJECT:", queryObj);
         // Check if the query object (either a node or a relationship) exists in the schema by searching for a label property in the schema that matches the query object's label property. Labels have to be unique among nodes and also among relationships.
         // Get the schema for the query object, if it exists.
-        const schemaForQueryObj = findQueryObjSchema(configs.schema, "label", queryObj.label)
+        const schemaForQueryObj = findQueryObjSchema(config.schema, "label", queryObj.label)
         console.log("SCHEMA FOR QUERY OBJ:", schemaForQueryObj);
         if (schemaForQueryObj && (isINodeQueryObj(schemaForQueryObj) || isIRelationshipQueryObj(schemaForQueryObj))) {
           // Validate the query object against the schema for the query object.
