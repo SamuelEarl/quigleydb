@@ -6,7 +6,7 @@ import { config } from "../qgly.config";
 import { handleError } from "./utils";
 import { SchemaType } from "./types";
 
-const fileExtension = ".js";
+const fileExtension = ".ts";
 
 /**
  * This function will create a string of a JavaScript object, which will be written to a `.ts` file.
@@ -46,7 +46,7 @@ export function createSchemaObj(schemaObjType: string, schemaObjString: string) 
 export async function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string) {
   try {
     console.log("schemaFilepath:", schemaFilepath);
-    const filename = schemaFilepath + fileExtension;
+    const filename = `${schemaFilepath}${fileExtension}`;
     const input = fs.createReadStream(path.resolve(schemaFilepath));
     const output = fs.createWriteStream(filename, { encoding: "utf8" });
     // Create a readable stream from a file. The readline module reads the file line by line, but from a readable stream only.
@@ -111,12 +111,11 @@ export async function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string)
 
     rl.on("close", () => {
       // Write the schema export at the end of the file.
-      let schemaExport = `export const schema = {${EOL}`;
+      output.write(`export const schema = {${EOL}`);
       labels.forEach(label => {
-        schemaExport += `  ${label},${EOL}`;
+        output.write(`  ${label},${EOL}`);
       });
-      schemaExport += `};${EOL}`;
-      output.write(schemaExport);
+      output.write(`};${EOL}`);
       output.end();
       console.log("Finished writing to file.");
 
@@ -145,7 +144,6 @@ export async function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string)
 
 export function checkForDuplicateLabels(schema: SchemaType) {
   try {
-    console.log("schema:", schema);
     const labels: string[] = [];
     // Loop through the schema object.
     for (const schemaKey in schema) {
@@ -194,6 +192,7 @@ export async function schemaSyntaxValidator(schemasDir: string = config.schemasD
     let module;
     try {
       module = await import(`${absoluteSchemaFilepath}${fileExtension}`);
+      // console.log("MODULE:", module);
     }
     catch(err: any) {
       throw new Error(`Schema objects must be unique. A schema object named ${err.message}.`);
