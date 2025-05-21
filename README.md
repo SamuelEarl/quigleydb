@@ -71,3 +71,19 @@ Using npm scripts: You can run the entire Quigley library with `bun` by running 
 ## Why the name Quigley
 
 The name Quigley looks like the letters GQL rearranged and turned into a word (QuiGLey).
+
+---
+
+## Language Support in VSCode
+
+The syntax of a `.gqls` file is very similar to a GraphQL file (`gql`, `graphql`). You can even get syntax highlighting and some language support by associating `.gqls` files with `.gql` file types (at least until there is a official language support created for VSCode).
+
+Open your `settings.json` file (`Shift+Ctrl+P` (Linux/Windows), `Shift+Command+P` (Mac)) and create an entry for file associations:
+
+```json
+"files.associations": {
+  "*.gqls": "gql"
+}
+```
+
+You might need to rename your `schema.gqls` file to `schema.gql` (drop the "s" at the end) (remember to press enter so the file actually gets renamed) and then rename it back to `schema.gqls` for the file association to take affect in VSCode.
