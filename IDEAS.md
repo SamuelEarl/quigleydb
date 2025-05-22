@@ -32,6 +32,8 @@ As applications and their data models evolve, the database schema needs to adapt
 
 _Source: AI Overview when searching for "what is a schema migration" in Google._
 
+Constraints are how things like required fields, optional fields, default values (for optional fields), and data types for each field are defined.
+
 ---
 
 ## Project Ideas
@@ -44,7 +46,7 @@ I imagine the user flow for developing and working with the data in their databa
 
 1. Create a schema file. Along with node and relationship definitions, this file should include indexes and constraints that need to be created/updated in the database. 
     1. Decide on the syntax of the file. Maybe it should use a similar syntax that Cypher uses to create indexes and constraints, which are similar to SQL and SurrealQL schema file syntax. Or maybe it would be better to create a new syntax that is more object-based, similar to GraphQL.
-        1. I have created a `schema.experiment.gql` file (in the `schema-ideas` folder) that uses a similar syntax to GraphQL schema files, but also combines some ideas from Mongoose.js and SurrealDB's edge tables.
+        1. I have created a `schema.v1.gql` file (in the `schema-ideas` folder) that uses a similar syntax to GraphQL schema files, but also combines some ideas from Mongoose.js and SurrealDB's edge tables.
         2. Look at https://graphql.org/learn/schema/ for more schema ideas and data type ideas.
         3. I like the file extension `.gqls` for Graph Query Language Standard. I might also support something like `.gqliso`.
     2. Figure out how to ingest that schema file through a FalkorDB CLI so the schema is applied to the database. It looks like Falkor has a redis-cli.

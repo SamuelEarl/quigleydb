@@ -5,12 +5,22 @@ Explicit is better than implicit. The schema file will be the single-source of t
 ## ID VALUES
 
 * Explicit is better than implicit, so I want users to define their ID properties for nodes or relations in the schema.
+* Unique IDs must be generated for each node (and relation?) by default. I don't know if FalkorDB generates unique IDs for you or if you need to generate those yourself.
+
+## INDEXES
+
+I think it will work for all indexes to be defined on the specific properties that they apply to. See the `schema.v1.gqls` file for examples.
 
 ## CONSTRAINTS
+
+Constraints can be defined on the specific properties that they apply to or they can be defined on the node/relation if multiple properties are included (e.g. a "unique" constraint across multiple properties). See the `schema.v1.gqls` file for examples.
+
+_See https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS_
 
 ### REQUIRED & OPTIONAL VALUES
 
 * Required Fields: A field is required if it is defined in the schema (with no `optional` or `default` definitions). In a query, if no value is provided for a required field, then an error will be thrown. Required fields cannot have default values defined in the schema.
+    * Tip: In most database designs the majority of properties should be required. (https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-NOT-NULL)
 * Optional Fields: A field is optional if it is marked with `optional: true, default: <someDefaultValue>`. An optional field must have a default value defined in the schema. In a query, if a value is not provided in a query, then the default value will be inserted. NULL is not an acceptable default value. The default value must be the same data type as the field.
 * This means that all properties in all nodes/relations will be present and will have a non-null value. This is a stricter enforcement of the values that are inserted into the database, which is what I prefer for data integrity.
 

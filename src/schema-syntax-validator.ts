@@ -170,7 +170,7 @@ export function checkForDuplicateLabels(schema: SchemaType) {
 
 
 // TODO: Figure out how to run this file and the `schemaSyntaxValidator()` function through a CLI. I want users to run the schema file through the CLI (`qgly validate schema`), which will run the `schemaSyntaxValidator()` function, convert the file to a TypeScript file, and validate the schema syntax (i.e. verify that the user is using the correct syntax for their schema).
-// TODO: I want this function to read from the config file when they run `qgly validate schema`, so I will need to figure out how to do that after this projected is turned into a package.
+// TODO: I want this function to read from the config file when they run `qgly validate schema`, so I will need to figure out how to do that after this project is turned into a package.
 
 /**
  * This function will validate the schema to make sure that it contains the correct schema definitions for Nodes (INodeSchema types) and Relationships (IRelationshipSchema types) and that each property within each schema definition is formatted correctly. 

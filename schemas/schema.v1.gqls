@@ -5,8 +5,27 @@ node Student {
     id: String,
     firstName: String,
     lastName: String,
-    email: String,
-    age: Int,
+    email: {
+      type: String,
+      indexes: {
+        # Syntax: Name of index: true
+        email_index: true,
+        # This would generate the following Cypher query, which would be run during a migration: "CREATE INDEX email_index FOR (s:Student) ON (s.email)"
+      },
+      constraints: {
+        # Syntax: Name of constraint: "type of constraint"
+        unique_email_constraint: "unique",
+        # This would generate the following Cypher query, which would be run during a migration: "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
+      },
+    },
+    age: {
+      type: Int,
+      optional: true,
+      default: 0,
+      constraints: {
+        positive_age_constraint: (age >= 0),
+      },
+    },
     address: {
       street: String,
       city: String,
@@ -30,12 +49,8 @@ node Student {
       # EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
     },
   },
-  indexes: [
-    "CREATE INDEX student_id_index FOR (s:Student) ON (s.id)",
-  ],
-  constraints: [
-    "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE",
-  ],
+  indexes: [],
+  constraints: {},
 };
 
 node Course {
@@ -44,7 +59,10 @@ node Course {
     subject: String,
   },
   indexes: [],
-  constraints: [],
+  constraints: {
+    # Example of a node constraint that includes multiple props:
+    unique_title_and_subject_constraint: "unique" (title, subject),
+  },
 };
 
 relation ENROLLED_IN {
@@ -56,7 +74,7 @@ relation ENROLLED_IN {
     grade: Float,
   },
   indexes: [],
-  constraints: [],
+  constraints: {},
 };
 
 node Instructor {
@@ -66,7 +84,7 @@ node Instructor {
     email: String,
   },
   indexes: [],
-  constraints: [],
+  constraints: {},
 };
 
 relation COURSE_INSTRUCTOR {
@@ -77,5 +95,5 @@ relation COURSE_INSTRUCTOR {
     instructingCourseSince: Date,
   },
   indexes: [],
-  constraints: [],
+  constraints: {},
 };
