@@ -4,8 +4,8 @@ Explicit is better than implicit. The schema file will be the single-source of t
 
 ## ID VALUES
 
-* Explicit is better than implicit, so I want users to define their ID properties for nodes or relations in the schema.
 * Unique IDs must be generated for each node (and relation?) by default. I don't know if FalkorDB generates unique IDs for you or if you need to generate those yourself.
+* If FalkorDB does NOT generate unique IDs for you, then I want users to explicitly define their ID properties for nodes or relations in the schema because explicit is better than implicit. I don't want to assume that a user wants to use an Int or a String as their ID value. However, I might recommend using a UUIDv4 string for ID values or some other option that provides universally unique values.
 
 ## INDEXES
 
