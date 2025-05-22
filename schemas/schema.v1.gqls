@@ -13,8 +13,8 @@ node Student {
         # This would generate the following Cypher query, which would be run during a migration: "CREATE INDEX email_index FOR (s:Student) ON (s.email)"
       },
       constraints: {
-        # Syntax: Name of constraint: "type of constraint"
-        unique_email_constraint: "unique",
+        # Syntax: Name of constraint: CONSTRAINT_TYPE
+        unique_email_constraint: UNIQUE,
         # This would generate the following Cypher query, which would be run during a migration: "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
       },
     },
@@ -49,7 +49,7 @@ node Student {
       # EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
     },
   },
-  indexes: [],
+  indexes: {},
   constraints: {},
 };
 
@@ -58,10 +58,14 @@ node Course {
     title: String,
     subject: String,
   },
-  indexes: [],
+  # Node indexes
+  indexes: {
+    title_subject_index: (title, subject),
+  },
+  # Node constraints
   constraints: {
     # Example of a node constraint that includes multiple props:
-    unique_title_and_subject_constraint: "unique" (title, subject),
+    unique_title_and_subject_constraint: UNIQUE (title, subject),
   },
 };
 
@@ -73,7 +77,7 @@ relation ENROLLED_IN {
     enrollmentDate: Date,
     grade: Float,
   },
-  indexes: [],
+  indexes: {},
   constraints: {},
 };
 
@@ -83,7 +87,7 @@ node Instructor {
     lastName: String,
     email: String,
   },
-  indexes: [],
+  indexes: {},
   constraints: {},
 };
 
@@ -94,6 +98,6 @@ relation COURSE_INSTRUCTOR {
   props: {
     instructingCourseSince: Date,
   },
-  indexes: [],
+  indexes: {},
   constraints: {},
 };

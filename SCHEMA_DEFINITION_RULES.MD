@@ -9,7 +9,11 @@ Explicit is better than implicit. The schema file will be the single-source of t
 
 ## INDEXES
 
-I think it will work for all indexes to be defined on the specific properties that they apply to. See the `schema.v1.gqls` file for examples.
+Indexes can be defined on the specific properties that they apply to. See the `schema.v1.gqls` file for examples. 
+
+They can also be defined on the node/relation if multiple properties in included. (See Multicolumn Indexes: https://www.postgresql.org/docs/current/indexes-multicolumn.html)
+
+(Read more about indexes: https://www.postgresql.org/docs/current/indexes.html.)
 
 ## CONSTRAINTS
 
