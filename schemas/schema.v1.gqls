@@ -65,7 +65,7 @@ node Course {
   # Node constraints
   constraints: {
     # Example of a node constraint that includes multiple props:
-    unique_title_and_subject_constraint: UNIQUE (title, subject),
+    unique_title_and_subject_constraint: (title, subject) UNIQUE,
   },
 };
 
