@@ -4,8 +4,9 @@ Explicit is better than implicit. The schema file will be the single-source of t
 
 ## ID VALUES
 
-* Unique IDs must be generated for each node (and relation?) by default. I don't know if FalkorDB generates unique IDs for you or if you need to generate those yourself.
-* If FalkorDB does NOT generate unique IDs for you, then I want users to explicitly define their ID properties for nodes or relations in the schema because explicit is better than implicit. I don't want to assume that a user wants to use an Int or a String as their ID value. However, I might recommend using a UUIDv4 string for ID values or some other option that provides universally unique values.
+* Unique IDs must be generated for each node (and relation?) by default. Most (or all?) GQL/Cypher implementations do not generate unique IDs for you. FalkorDB, for example, generates an auto-incrementing internal ID, but it will not work in queries. So you will need to explicitly define an ID property for each node (and relation?) in your schema, define it as optional property and provide a default ID generation option so that it will be auto-generated for you with each CREATE query.
+* You can use any unique identifeir for your ID properties. If you are not sure what to use, then you can look into UUIDv4, UUIDv7, and ULID as possible options for generating ID values. (See [UUIDv4 vs UUIDv7 vs ULID: Choosing the Right Identifier for Database Performance](https://medium.com/@ciro-gomes-dev/uuidv4-vs-uuidv7-vs-ulid-choosing-the-right-identifier-for-database-performance-1f7d1a0fe0ba))
+* Quigley does not make any assumptions about the unique ID value that you want to use (e.g. Int vs String), so you need to explicitly define the type of ID that you want in your schema.
 
 ## INDEXES
 
