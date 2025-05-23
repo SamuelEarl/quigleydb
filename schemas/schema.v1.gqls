@@ -4,8 +4,7 @@ node Student {
   props: {
     uuid: {
       type: String,
-      optional: true,
-      default: () => uuidv7(),
+      autoGenerate: () => uuidv7(),
     },
     firstName: String,
     lastName: String,
@@ -61,8 +60,7 @@ node Course {
   props: {
     uuid: {
       type: String,
-      optional: true,
-      default: () => uuidv7(),
+      autoGenerate: () => uuidv7(),
     },
     title: String,
     subject: String,
@@ -94,8 +92,7 @@ node Instructor {
   props: {
     uuid: {
       type: String,
-      optional: true,
-      default: () => uuidv7(),
+      autoGenerate: () => uuidv7(),
     },
     firstName: String,
     lastName: String,
