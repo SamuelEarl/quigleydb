@@ -2,7 +2,11 @@
 
 node Student {
   props: {
-    uuid: String,
+    uuid: {
+      type: String,
+      optional: true,
+      default: () => uuidv7(),
+    },
     firstName: String,
     lastName: String,
     email: {
@@ -55,7 +59,11 @@ node Student {
 
 node Course {
   props: {
-    uuid: String,
+    uuid: {
+      type: String,
+      optional: true,
+      default: () => uuidv7(),
+    },
     title: String,
     subject: String,
   },
@@ -84,7 +92,11 @@ relation ENROLLED_IN {
 
 node Instructor {
   props: {
-    uuid: String,
+    uuid: {
+      type: String,
+      optional: true,
+      default: () => uuidv7(),
+    },
     firstName: String,
     lastName: String,
     email: String,
