@@ -2,7 +2,7 @@
 
 node Student {
   props: {
-    id: String,
+    uuid: String,
     firstName: String,
     lastName: String,
     email: {
@@ -55,6 +55,7 @@ node Student {
 
 node Course {
   props: {
+    uuid: String,
     title: String,
     subject: String,
   },
@@ -83,6 +84,7 @@ relation ENROLLED_IN {
 
 node Instructor {
   props: {
+    uuid: String,
     firstName: String,
     lastName: String,
     email: String,
