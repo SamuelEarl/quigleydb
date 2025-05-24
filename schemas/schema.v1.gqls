@@ -10,11 +10,7 @@ node Student {
     lastName: String,
     email: {
       type: String,
-      indexes: {
-        # Syntax: Name of index: true
-        email_index: true,
-        # This would generate the following Cypher query, which would be run during a migration: "CREATE INDEX email_index FOR (s:Student) ON (s.email)"
-      },
+      index: email_index, # This would generate the following Cypher query, which would be run during a migration: "CREATE INDEX email_index FOR (s:Student) ON (s.email)"
       constraints: {
         # Syntax: Name of constraint: CONSTRAINT_TYPE
         unique_email_constraint: UNIQUE,
