@@ -19,8 +19,7 @@ node Student {
     },
     age: {
       type: Int,
-      optional: true,
-      default: 0,
+      optional: 0, # The syntax for the `optional` property is `optional: <defaultValue>`. The default value must be provided.
       constraints: {
         positive_age_constraint: (age >= 0),
       },

@@ -40,7 +40,7 @@ export function createSchemaObj(schemaObjType: string, schemaObjString: string) 
 }
 
 /**
- * This function will remove all comments from the `schema.gqls` file (i.e. everything after a # sign), convert the `schema.gqls` node and relation schema objects to JavaScript objects, and write those JavaScript objects to a new `schema.gqls.ts` file. That `schema.gqls.ts` file will be used to validate the GQL queries.
+ * This function will remove all comments from the `schema.v*.gqls` file (i.e. everything after a # sign), convert the `schema.v*.gqls` node and relation schema objects to JavaScript objects, and write those JavaScript objects to a new `schema.v*.gqls.ts` file. That `schema.v*.gqls.ts` file will be used to validate the GQL queries.
  * @param schemaFilepath 
  */
 export async function convertGQLSchemaToTypeScriptSchema(schemaFilepath: string) {
@@ -171,6 +171,7 @@ export function checkForDuplicateLabels(schema: SchemaType) {
 
 // TODO: Figure out how to run this file and the `schemaSyntaxValidator()` function through a CLI. I want users to run the schema file through the CLI (`qgly validate schema`), which will run the `schemaSyntaxValidator()` function, convert the file to a TypeScript file, and validate the schema syntax (i.e. verify that the user is using the correct syntax for their schema).
 // TODO: I want this function to read from the config file when they run `qgly validate schema`, so I will need to figure out how to do that after this project is turned into a package.
+// NOTE: The `schemaSyntaxValidator()` function is being called from the Makefile for now, until I am ready to run it with CLI commands.
 
 /**
  * This function will validate the schema to make sure that it contains the correct schema definitions for Nodes (INodeSchema types) and Relationships (IRelationshipSchema types) and that each property within each schema definition is formatted correctly. 
@@ -185,7 +186,7 @@ export async function schemaSyntaxValidator(schemasDir: string = config.schemasD
     const absoluteSchemaFilepath = `${schemasDir}/${schemaFile}`;
     console.log("absoluteSchemaFilepath:", absoluteSchemaFilepath);
 
-    // Convert the gqls.schema file to a TypeScript schema file, which will be used to validate the queries.
+    // Convert the schema.v*.gqls file to a TypeScript schema file, which will be used to validate the queries.
     await convertGQLSchemaToTypeScriptSchema(absoluteSchemaFilepath);
 
     console.log("filepath:", `${absoluteSchemaFilepath}${fileExtension}`);
@@ -198,12 +199,12 @@ export async function schemaSyntaxValidator(schemasDir: string = config.schemasD
       throw new Error(`Schema objects must be unique. A schema object named ${err.message}.`);
     }
 
-    // TODO: Since the labels will be auto-generated based on the schema.gqls file, I need to update this function. Do I still need to check for duplicates? Should I throw an error that would make more sense to users who are working with the schema.gqls files? Maybe throwing the error above addresses this issue now and the `checkForDuplicateLabels()` function is no longer needed.
+    // TODO: Since the labels will be auto-generated based on the schema.v*.gqls file, I need to update this function. Do I still need to check for duplicates? Should I throw an error that would make more sense to users who are working with the schema.v*.gqls files? Maybe throwing the error above will address this issue now and the `checkForDuplicateLabels()` function is no longer needed.
     checkForDuplicateLabels(module.schema);
 
-    // Check if nodes have all of the properties from the types.ts file.
+    // TODO: Check if nodes have all of the properties from the types.ts file.
 
-    // Check if relations have all of the properties from the types.ts file.
+    // TODO: Check if relations have all of the properties from the types.ts file.
 
     // TODO: Add more schema syntax validations. 
     

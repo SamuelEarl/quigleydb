@@ -46,7 +46,7 @@ _See https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINT
 
 * Required Fields: A field is required if it is defined in the schema (with no `optional` or `default` definitions). In a query, if no value is provided for a required field, then an error will be thrown. Required fields cannot have default values defined in the schema.
     * Tip: In most database designs the majority of properties should be required. (https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-NOT-NULL)
-* Optional Fields: A field is optional if it is marked with `optional: true, default: <someDefaultValue>`. An optional field must have a default value defined in the schema. In a query, if a value is not provided in a query, then the default value will be inserted. NULL is not an acceptable default value. The default value must be the same data type as the field.
+* Optional Fields: A field is optional if it is marked with `optional: <defaultValue>`. An optional field must have a default value defined in the schema. In a query, if a value is not provided in a query, then the default value will be inserted. NULL is not an acceptable default value. The default value must be the same data type as the field.
 * This means that all properties in all nodes/relations will be present and will have a non-null value. This is a stricter enforcement of the values that are inserted into the database, which is what I prefer for data integrity.
 
 ---
