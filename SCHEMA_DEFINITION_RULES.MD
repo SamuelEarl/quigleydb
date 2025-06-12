@@ -60,6 +60,7 @@ MORE NOTES:
   * In version 1 I will require users to explicitly define the values and/or default values that should be inserted into the graph/database in each query that they define. Users would have to define their own default values in their code before they define a query. For example: `const displayName = payload.displayName ? payload.displayName : "";`
 * TODO: Maybe this will be a version 2 feature, if I decide that I want to do this: If a user does not pass a required property (and param) in a CREATE or MERGE clause, then Quigly will throw an error, unless the user provides a default value in the schema. If the user does not pass a required property (and param) but does provide a default value in the schema, then the default value will be inserted into the database.
 * If a user introduces a new property as part of a schema migration, then the user will need to define a default value that will be inserted into nodes or relations that existed before the migration and that did not have that property previously. That way the schema will be consistent across the entire graph/database.
+* As part of the validation process for values that are passed to a query, I want to check for ints and floats instead of just numbers. So I need to figure out how to check for ints and floats in my query validation.
 
 ### OTHER CONSTRAINTS
 
