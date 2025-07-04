@@ -1,5 +1,7 @@
 # GQL Middleware Ideas
 
+UPDATE: I might want to turn this project into a local-first Graph database similar to Electric-SQL.
+
 UPDATE: Maybe I should learn Rust and contribute some PRs to help FalkorDB and GQL grow and improve instead of creating my own middleware, which would only apply to JavaScript/Node.js and would not be as beneficial as a features that are built into the database.
 
 ## What is a schema migration?
