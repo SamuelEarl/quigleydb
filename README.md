@@ -11,6 +11,13 @@ I want to create a Graph-Document database that has an intuitive GQL-inspired qu
 * Graph database where each record is a document that can be infinitely nested.
 * Simple and intuitive query language based on GQL. See the `QUERY_LANGUAGE.md` file for details.
 
+Multi-modal databases do *not* seem to follow the principle of only one way to do things, so this database will not attempt to be multi-modal. However, I am pretty sure that graph databases can do everything that most, if not all, other databases can do. So this database should be able to handle most other use cases.
+
+## Possible Names
+
+* iGQL = *intuitive* Graph Query Language
+* Quigley = GQL rearranged (and formed into a word or name). This is less insulting.
+
 ---
 
 # Quigley - GQL Middleware for FalkorDB

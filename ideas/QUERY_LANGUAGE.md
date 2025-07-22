@@ -11,14 +11,6 @@ I want there to be only one way to do something (similar to Python's manifesto).
 
 There should be only one way to perform an operation.
 
-NOTE:
-
-Multi-modal databases do not seem to follow the principle of only one way to do things, so this database will not attempt to be multi-modal. However, I am pretty sure that graph databases can do everything that most, if not all, other databases can do. So this database should be able to handle most other use cases.
-
-### Possible Names
-
-* iGQL = *intuitive* Graph Query Language
-* Quigley = GQL rearranged (and formed into a word or name). This is less insulting.
 
 ### Strongly Typed Variables
 
