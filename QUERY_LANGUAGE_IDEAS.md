@@ -1,6 +1,6 @@
 # Example Queries
 
-These queries are taken from https://docs.edgedb.com/get-started/edgeql and converted into a query language that I think would be easy and intuitive to use.
+These queries are taken from https://docs.edgedb.com/get-started/edgeql and converted into a query language that I think would be easy and intuitive to use. NOTE: I think that would be this page now: https://docs.geldata.com/learn/edgeql.
 
 ## Query Composition
 
@@ -9,6 +9,8 @@ Every query is run as a transaction, so composing multiple queries into a single
 Maybe it would be better to structure queries as "query pipelines" where the order of each CRUD operation in the pipeline matters. This is similar to MongoDB aggregation pipelines.
 
 GQL uses separate "CREATE", "MATCH", "RETURN" and other statements. So this query pipeline will do the same.
+
+The CRUD operations stand for CREATE, READ, UPDATE, and DELETE. So those are the statements that this query language will use.
 
 ```js
 const result = query([
