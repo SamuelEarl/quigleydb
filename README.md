@@ -1,4 +1,4 @@
-# Quigley - Graph Database with a GQL-inspired query language.
+# Quigley - Graph-Document Database with a GQL-inspired query language.
 
 See the files in the `ideas` directory for more information. Look at my Chrome bookmark for "Computer Science" >> "Database Design" for more resources. 
 
@@ -9,7 +9,7 @@ I want to create a Graph-Document database that has an intuitive GQL-inspired qu
 * I have had the hardest time trying to decide on a database that I like. I finally came to the conclusion that I should create my own database and query language.
 * Written in Mojo.
 * Graph database where each record is a document that can be infinitely nested.
-* Simple and intuitive query language. See the `QUERY_LANGUAGE.md` file for details.
+* Simple and intuitive query language based on GQL. See the `QUERY_LANGUAGE.md` file for details.
 
 ---
 
