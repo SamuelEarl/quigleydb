@@ -1,6 +1,6 @@
 # Quigley - Graph Database with a GQL-inspired query language.
 
-See the files in the `ideas` directory for more information.
+See the files in the `ideas` directory for more information. Look at my Chrome bookmark for "Computer Science" >> "Database Design" for more resources. 
 
 I will add more notes to this file as I work on this project.
 
