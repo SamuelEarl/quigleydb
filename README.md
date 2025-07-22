@@ -1,3 +1,18 @@
+# Quigley - Graph Database with a GQL-inspired query language.
+
+See the files in the `ideas` directory for more information.
+
+I will add more notes to this file as I work on this project.
+
+I want to create a Graph-Document database that has an intuitive GQL-inspired query language. Similar to SurrealDB, but better.
+
+* I have had the hardest time trying to decide on a database that I like. I finally came to the conclusion that I should create my own database and query language.
+* Written in Mojo.
+* Graph database where each record is a document that can be infinitely nested.
+* Simple and intuitive query language. See the `QUERY_LANGUAGE.md` file for details.
+
+---
+
 # Quigley - GQL Middleware for FalkorDB
 
 Quigley is a middleware for GQL that provides two things:

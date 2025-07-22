@@ -1,0 +1,119 @@
+This is another idea for defining a Quigley schema. It uses a syntax that is similar to GraphQL but that also resembles the nodes and relationships in a query.
+
+NOTES: See my "SCHEMA_DEFINITION_RULES.md" file.
+
+# Student node
+# ------------
+(Student {
+  props: {
+    uuid: {
+      type: String,
+      autoGenerate: () => uuidv7(),
+    },
+    firstName: String,
+    lastName: String,
+    email: {
+      type: String,
+      index: email_index, # This would generate the following Cypher query, which would be run during a migration: "CREATE INDEX email_index FOR (s:Student) ON (s.email)"
+      constraints: {
+        # Syntax: Name of constraint: CONSTRAINT_TYPE
+        unique_email_constraint: UNIQUE,
+        # This would generate the following Cypher query, which would be run during a migration: "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
+      },
+    },
+    age: {
+      type: Int,
+      optional: 0, # The syntax for the `optional` property is `optional: <defaultValue>`. The default value must be provided.
+      constraints: {
+        positive_age_constraint: (age >= 0),
+      },
+    },
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zip: String, # Zip codes are strings because integers can't represent a leading zero and also because other countries might use letters, spaces, or dashes.
+    },
+    roles: {
+      type: [String],
+      # The user's `roles` array can contain one or many values from the `atLeastOneValue` array.
+      atLeastOneValue: ["student", "employee", "athlete"],
+      # EXAMPLE VALUE: ["student"]
+    },
+    classYear: {
+      type: String,
+      # The user's `classYear` can only be one of the values from the `onlyOneValue` array.
+      onlyOneValue: ["freshman", "sophomore", "junior", "senior"],
+      # EXAMPLE VALUE: "freshman",
+    },
+    misc: {
+      type: JSON,
+      # EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
+    },
+  },
+  indexes: {},
+  constraints: {},
+})
+
+# Course node
+# -----------
+(Course {
+  props: {
+    uuid: {
+      type: String,
+      autoGenerate: () => uuidv7(),
+    },
+    title: String,
+    subject: String,
+  },
+  # Node indexes
+  indexes: {
+    title_subject_index: (title, subject),
+  },
+  # Node constraints
+  constraints: {
+    # Example of a node constraint that includes multiple props:
+    unique_title_and_subject_constraint: (title, subject) UNIQUE,
+  },
+})
+
+# ENROLLED_IN relation
+# --------------------
+(Student)
+-[ENROLLED_IN {
+  props: {
+    enrollmentDate: Date,
+    grade: Float,
+  },
+  indexes: {},
+  constraints: {},
+}]-
+(Course)
+
+# Instructor node
+# ---------------
+(Instructor {
+  props: {
+    uuid: {
+      type: String,
+      autoGenerate: () => uuidv7(),
+    },
+    firstName: String,
+    lastName: String,
+    email: String,
+  },
+  indexes: {},
+  constraints: {},
+})
+
+# COURSE_INSTRUCTOR relation
+# --------------------------
+(Course)
+-[COURSE_INSTRUCTOR {
+  props: {
+    instructingCourseSince: Date,
+  },
+  indexes: {},
+  constraints: {},
+}]->
+(Instructor)
