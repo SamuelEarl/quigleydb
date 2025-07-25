@@ -2,7 +2,7 @@
 
 I want this database and query language to follow human-centered design principles as much as possible. For example, in the book "The Design of Everyday Things, 2nd Ed." page 20 talks about mapping. This is where the relationship between two things resemble each other. For example, if data is to be modeled as objects and their relationships to each other, then the query language should resemble the data model. That is what Cypher/GQL tries to do. I want to improve the GQL query language to make it even more intuitive and I also want the schema to resemble the data model.
 
-These are some ideas for a query language that is simple and intuitive. I want the query language to model the data structure (like what Cypher/GQL does), but I also want the query functions to use standard programming language constructs. For example, if you need to update multiple nodes or relationships in a query, then a `FOREACH` loop should work the same way that it works in JavaScript or Python (see https://neo4j.com/docs/cypher-manual/current/clauses/foreach/ for ideas). There should be variables that can be referenced inside the queries and those variables should work the same as they do in programming languages.
+These are some ideas for a query language that is simple and intuitive. I want the query language to model the data structure (like what Cypher/GQL does), but I also want the query functions to use standard programming language constructs. For example, if you need to update multiple nodes or relationships in a query, then a `FOR` loop should work the same way that it works in JavaScript or Python (see https://neo4j.com/docs/cypher-manual/current/clauses/foreach/ for ideas). There should be variables that can be referenced inside the queries and those variables should work the same as they do in programming languages.
 
 I want there to be only one way to do something (similar to Python's manifesto). For example:
 
@@ -25,7 +25,7 @@ The alias values in a CRUD operation allow you to reference the result of a quer
 
 The CRUD operations stand for CREATE, READ, UPDATE, and DELETE. So those are the clauses that this query language will use (instead of SELECT, MATCH, etc.).
 
-This database uses clauses (e.g. CREATE, READ, UPDATE, and DELETE) and functions (e.g. INCLUDES, FOREACH). Functions are used inside of clauses to provide query functionality (e.g. filter, update multiple node/relationships). All clauses and functions are capitalized with multi-word clauses/functions being separated by underscores.
+This database uses clauses (e.g. CREATE, READ, UPDATE, and DELETE) and functions (e.g. INCLUDES, FOR). Functions are used inside of clauses to provide query functionality (e.g. filter, update multiple node/relationships). All clauses and functions are capitalized with multi-word clauses/functions being separated by underscores.
 
 
 ## Example Queries
@@ -38,27 +38,37 @@ The following query ideas are taken from https://docs.edgedb.com/get-started/edg
 
 ### Create a single node and return individual properties
 
-The `query()` function takes two arguments: 
+The transaction function (`tx()`) takes two arguments: 
 
-1. A transaction array that contains all of the operation objects.
-2. A params object.
+1. A query transaction object that contains all of the queries. 
+    1. Each key in the transaction object is a stage in the transaction and the value of each stage is a `query()` function. 
+    2. The stages will be executed in the order of their key names, not in the order in which they are listed. So, for example, if the first stage listed is `stage0`, the second is `stage2`, and the third is `stage1`, the execution order will be `stage0`, `stage1`, `stage2`.
+2. A params object. 
+    1. Each key in the params object needs to be prefixed with a dollar symbol `$` and each param inside a `query()` function needs to match exactly. 
+    2. When the query is sent to the database the param inside the `query()` function will be replaced with the value of the param that is inside the params object.
 
-Notice that RETURN clauses are the last operation in the transaction array and they are contained within their own separate operation object. You can also specify individual properties that you want returned for nodes and relationships in the RETURN clause. If you do not specify individual properties, then all properties will be returned for the node or relationship.
+You have to specify what you want returned from the transaction in the last stage using a RETURN clause.
+
+In all stages previous to the last stage you can specify individual properties that you want returned for nodes and relationships with a RETURN clause. If you do not specify individual properties, then all properties will be returned for the node or relationship.
+
 
 ```js
-const result = query(
-  // Query Transaction
-  [
-    {
-      CREATE: `(m:Movie {
+const result = tx(
+  // Query Transaction Object
+  {
+    stage0: query(`
+      CREATE (m:Movie {
         title: $title,
         release_year: $release_year,
-      })`,
-    },
-    {
-      RETURN: `(m {id, title, release_year})`,
-    },
-  ],
+      })
+      // Use a RETURN statement to define a graph literal, which describes what to return from the stage0 query.
+      RETURN (m {id, title, release_year})
+    `),
+    stage1: query(`
+      // Return the results of the query from stage0.
+      RETURN stage0
+    `),
+  },
   // Params
   {
     $title: "Avengers: The Kang Dynasty",
@@ -70,32 +80,27 @@ const result = query(
 ### Create nodes and a relationship between them
 
 ```js
-const result = query(
-  // Query Transaction
-  [
-    {
-      CREATE: `(m:Movie {
+const result = tx(
+  {
+    stage0: query(`
+      CREATE (m:Movie {
         title: $title,
         release_year: $release_year,
-      })`,
-    },
-    {
-      CREATE: `(a:Actor {
+      })
+      CREATE (a:Actor {
         first_name: $first_name,
         last_name: $last_name,
-      })`,
-    },
-    {
-      CREATE: `
+      })
+      CREATE 
         (m)
         -[r:MOVIE_ACTOR {created_at: $created_at}]-
         (a)
-      `,
-    },
-    {
-      RETURN: `(m)-[r]-(a)`
-    },
-  ],
+      RETURN: (m)-[r]-(a)
+    `),
+    stage1: query(`
+      RETURN stage0
+    `),
+  },
   // Params
   {
     $title: "Avengers: The Kang Dynasty",
@@ -110,80 +115,127 @@ const result = query(
 ### Create new relationships between existing nodes
 
 ```js
-const result = query(
-  [
-    {
-      READ: `(m:Movie)`,
+const result = tx(
+  {
+    stage0: query(`
+      READ: (m:Movie)
       WHERE: {
         m.title: "Doctor Strange",
       }
-    },
-    {
-      READ: `(p1:Person)`,
+      RETURN (m)
+    `),
+    stage1: query(`
+      READ: (p1:Person)
       WHERE: {
         p1.first_name: "Benedict",
         p1.last_name: "Cumberbatch",
-      },
-    },
-    {
-      READ: `(p2:Person)`,
+      }
+      RETURN (p1)
+    `),
+    stage2: query(`
+      READ: (p2:Person)
       WHERE: {
         p2.first_name: "Benedict",
         p2.last_name: "Wong",
-      },
-    },
-    {
-      CREATE: `(p1)-[a:ACTED_IN]->(m)`,
-    },
-    {
-      CREATE: `(p2)-[a:ACTED_IN]->(m)`,
-    },
-    {
-      RETURN: `(p1 {first_name, last_name})-[a]->(m)<-[a]-(p2 {first_name, last_name})`,
-    },
-    // TODO: Decide if the RETURN clause should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
-    // {
-    //   RETURN: {
-    //     p1: [ first_name, last_name ],
-    //     a: True,
-    //     m: True,
-    //     p2: [ first_name, last_name ],
-    //   },
-    // },
-  ]
+      }
+      RETURN (p2)
+    `),
+    stage3: query(`
+      CREATE: (stage1)-[a:ACTED_IN]->(stage0),
+    `),
+    stage4: query(`
+      CREATE: (stage2)-[a:ACTED_IN]->(stage0),
+    `),
+    stage5: query(`
+      RETURN (stage1 {first_name, last_name})-[a:ACTED_IN]->(stage0)<-[a:ACTED_IN]-(stage2 {first_name, last_name})
+    `),
+  },
+  // TODO: Decide if the RETURN clause in the last stage should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
+  // {
+  //   RETURN: {
+  //     stage1: [ first_name, last_name ],
+  //     a: True,
+  //     stage0: True,
+  //     stage2: [ first_name, last_name ],
+  //   },
+  // },
 );
 ```
 
-### Create multiple nodes/relationships with FOREACH
+Or you could also do this:
+
+```js
+const result = tx(
+  {
+    stage0: query(`
+      READ: (m:Movie)
+      WHERE: {
+        m.title: "Doctor Strange",
+      }
+      
+      READ: (p1:Person)
+      WHERE: {
+        p1.first_name: "Benedict",
+        p1.last_name: "Cumberbatch",
+      }
+      
+      READ: (p2:Person)
+      WHERE: {
+        p2.first_name: "Benedict",
+        p2.last_name: "Wong",
+      }
+      
+      CREATE: (p1)-[a:ACTED_IN]->(m)
+    
+      CREATE: (p2)-[a:ACTED_IN]->(m)
+
+      RETURN (p1 {first_name, last_name})-[a]->(m)<-[a]-(p2 {first_name, last_name})
+    `),
+    stage1: query(`
+      RETURN stage0
+    `),
+  },
+  // TODO: Decide if the RETURN clause in the last stage should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
+  // {
+  //   RETURN: {
+  //     p1: [ first_name, last_name ],
+  //     a: True,
+  //     m: True,
+  //     p2: [ first_name, last_name ],
+  //   },
+  // },
+);
+```
+
+TODO: I am seeing a pattern where all the queries can/should be performed in stage0 and then stage1 is just a simple RETURN of stage0. That's not very beneficial. Maybe I can get rid of the query function and just use the tx() function. Hmmm. Still thinking through these ideas.
+
+### Create multiple nodes/relationships with FOR
 
 <!-- 
-TODO: I still need to think through how this FOREACH function should work. For ideas on how I should design the functionality of this FOREACH function, see:
+TODO: I still need to think through how this FOR function should work. For ideas on how I should design the functionality of this FOR function, see:
 * Neo4j's FOREACH: https://neo4j.com/docs/cypher-manual/current/clauses/foreach/
 * GelDB's for statement: https://docs.geldata.com/reference/edgeql/for
 -->
 
-The FOREACH clause is a mix between JavaScript's forEach() method and Python's for loop.
+The FOR clause is similar to Python's `for` loop.
 
 ```js
-const result = query(
-  // Query Transaction
-  [
+const result = tx(
+  {
     // Bulk insert nodes.
-    {
-      $stage1: FOREACH($user, $index) in $users {
-        CREATE: `(u$index:User {
-          first_name: $user.first_name,
-          last_name: $user.last_name,
+    stage0: query(`
+      VAR newNodes = []
+      FOR user, index IN $users {
+        CREATE (User {
+          first_name: user.first_name,
+          last_name: user.last_name,
           created_at: new Date(),
-        })`,
-      },
-    },
-    // RETURN All newly created user nodes.
-    {
-      
-      RETURN: $stage1
-    },
-  ],
+        })
+      }
+      // RETURN All newly created user nodes.
+      RETURN newNodes
+    `),
+  },
   // Params
   {
     $users: [
@@ -202,7 +254,7 @@ const result = query(
 ### Read data and filter query results with the WHERE clause
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `
@@ -239,7 +291,7 @@ const result = query(
 Use the WHERE clause to filter query results.
 
 ```js
-const result = query([
+const result = tx([
   {
     READ: `(p:Person)`,
     WHERE: {
@@ -254,7 +306,7 @@ const result = query([
 Do *NOT* use a node property to filter query results.
 
 ```js
-const result = query([
+const result = tx([
   {
     READ: `(p:Person {
       name: "Sam Raimi",
@@ -268,7 +320,7 @@ const result = query([
 The ORDER_BY, SKIP, and LIMIT clauses go in the last operation in the transaction array along with the RETURN clause.
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `
@@ -309,7 +361,7 @@ The READ and UPDATE clauses should be in their own operation objects.
 Only the properties that are specified in the UPDATE clause will be updated. Nothing else will be touched.
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `(m:Movie)`,
@@ -336,7 +388,7 @@ const result = query(
 ### Updating relationships
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `(m:Movie)<-[a:ACTED_IN]-(p:Person)`,
@@ -371,7 +423,7 @@ When deleting entire nodes or relationships, specify the nodes or relationships 
 Any nodes/relationship that you specify in the RETURN clause will return the `id` of the node/relationships that have been deleted.
 
 ```js
-const result = query([
+const result = tx([
   {
     READ: `(m:Movie)`,
     WHERE: {
@@ -394,7 +446,7 @@ const result = query([
 You can delete individual properties by specifying those properties inside an array in the DELETE clause. Any other properties that are not specified will be left untouched and the rest of the node/relationship will still exist.
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `(m:Movie)`,
@@ -427,7 +479,7 @@ You can delete a relationship between two existing nodes by specifying the relat
 Since each query runs a transaction of queries, you can specify only the data that you want to delete in each individual DELETE operation object. Make sure that relationships are deleted first.
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `(m:Movie)<-[a:ACTED_IN]-(p:Person)`,
@@ -465,7 +517,7 @@ const result = query(
 Or you can combine all of the DELETE operations together into one DELETE operation object.
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `(m:Movie)<-[a:ACTED_IN]-(p:Person)`,
@@ -496,7 +548,7 @@ const result = query(
 TODO: EdgeQL says that delete clauses can contain `filter`, `order by`, `offset`, and `limit` clauses (https://docs.edgedb.com/get-started/edgeql#delete-objects). (My versions of those clauses are WHERE, ORDER_BY, SKIP, and LIMIT.) Do those clauses make sense for deleting data, as in the follow example?
 
 ```js
-const result = query([
+const result = tx([
   {
     READ: `(m:Movie)`,
     WHERE: {
@@ -522,7 +574,7 @@ const result = query([
 ## Computed Properties
 
 ```js
-const result = query(
+const result = tx(
   [
     {
       READ: `(m:Movie)<-[ACTED_IN]-(p:Person)`,
