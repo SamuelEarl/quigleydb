@@ -34,45 +34,31 @@ The following query ideas are taken from https://docs.edgedb.com/get-started/edg
 
 ---
 
-TODO: I am seeing a pattern where all the queries can/should be performed in stage0 and then stage1 is just a simple RETURN of stage0. That's not very beneficial. Maybe I can get rid of the query function and just use the tx() function. Hmmm. Still thinking through these ideas.
-
----
-
 ## CREATE Data
 
 ### Create a single node and return individual properties
 
 The transaction function (`tx()`) takes two arguments: 
 
-1. A query transaction object that contains all of the queries. 
-    1. Each key in the transaction object is a stage in the transaction and the value of each stage is a `query()` function. 
-    2. The stages will be executed in the order of their key names, not in the order in which they are listed. So, for example, if the first stage listed is `stage0`, the second is `stage2`, and the third is `stage1`, the execution order will be `stage0`, `stage1`, `stage2`.
-2. A params object. 
-    1. Each key in the params object needs to be prefixed with a dollar symbol `$` and each param inside a `query()` function needs to match exactly. 
-    2. When the query is sent to the database the param inside the `query()` function will be replaced with the value of the param that is inside the params object.
+1. A string of query statements, which are composed as a function body.
+    1. If users can compose statements into a function body and just pass that function body to the tx() function (as a string), then that would open up a lot of possibilities and it could make the queries much simpler.
+    2. All variables that are defined within the query statements are global within a transaction. So anything that is defined can be referenced later in the query (e.g. aliases, variables that are defined with VAR).
+2. A params object.
+    1. Each key in the params object needs to be prefixed with a dollar symbol `$` and each param inside a `tx()` function needs to match exactly.
+    2. When the query is sent to the database the params inside the `tx()` function will be replaced with the value of the param that is inside the params object.
 
-You have to specify what you want returned from the transaction in the last stage using a RETURN clause.
-
-In all stages previous to the last stage you can specify individual properties that you want returned for nodes and relationships with a RETURN clause. If you do not specify individual properties, then all properties will be returned for the node or relationship.
-
+You have to specify what you want returned from the transaction using a RETURN clause.
 
 ```js
 const result = tx(
-  // Query Transaction Object
-  {
-    stage0: query(`
-      CREATE (m:Movie {
-        title: $title,
-        release_year: $release_year,
-      })
-      // Use a RETURN statement to define a graph literal, which describes what to return from the stage0 query.
-      RETURN (m {id, title, release_year})
-    `),
-    stage1: query(`
-      // Return the results of the query from stage0.
-      RETURN stage0
-    `),
-  },
+  `
+    CREATE (m:Movie {
+      title: $title,
+      release_year: $release_year,
+    })
+    // Define a graph literal in the RETURN statement, which describes what to return from the query.
+    RETURN (m {id, title, release_year})
+  `,
   // Params
   {
     $title: "Avengers: The Kang Dynasty",
@@ -85,26 +71,21 @@ const result = tx(
 
 ```js
 const result = tx(
-  {
-    stage0: query(`
-      CREATE (m:Movie {
-        title: $title,
-        release_year: $release_year,
-      })
-      CREATE (a:Actor {
-        first_name: $first_name,
-        last_name: $last_name,
-      })
-      CREATE 
-        (m)
-        -[r:MOVIE_ACTOR {created_at: $created_at}]-
-        (a)
-      RETURN: (m)-[r]-(a)
-    `),
-    stage1: query(`
-      RETURN stage0
-    `),
-  },
+  `
+    CREATE (m:Movie {
+      title: $title,
+      release_year: $release_year,
+    })
+    CREATE (a:Actor {
+      first_name: $first_name,
+      last_name: $last_name,
+    })
+    CREATE 
+      (m)
+      -[r:MOVIE_ACTOR {created_at: $created_at}]-
+      (a)
+    RETURN: (m)-[r]-(a)
+  `,
   // Params
   {
     $title: "Avengers: The Kang Dynasty",
@@ -120,86 +101,31 @@ const result = tx(
 
 ```js
 const result = tx(
-  {
-    stage0: query(`
-      READ: (m:Movie)
-      WHERE: {
-        m.title: "Doctor Strange",
-      }
-      RETURN (m)
-    `),
-    stage1: query(`
-      READ: (p1:Person)
-      WHERE: {
-        p1.first_name: "Benedict",
-        p1.last_name: "Cumberbatch",
-      }
-      RETURN (p1)
-    `),
-    stage2: query(`
-      READ: (p2:Person)
-      WHERE: {
-        p2.first_name: "Benedict",
-        p2.last_name: "Wong",
-      }
-      RETURN (p2)
-    `),
-    stage3: query(`
-      CREATE: (stage1)-[a:ACTED_IN]->(stage0),
-    `),
-    stage4: query(`
-      CREATE: (stage2)-[a:ACTED_IN]->(stage0),
-    `),
-    stage5: query(`
-      RETURN (stage1 {first_name, last_name})-[a:ACTED_IN]->(stage0)<-[a:ACTED_IN]-(stage2 {first_name, last_name})
-    `),
-  },
-  // TODO: Decide if the RETURN clause in the last stage should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
-  // {
-  //   RETURN: {
-  //     stage1: [ first_name, last_name ],
-  //     a: True,
-  //     stage0: True,
-  //     stage2: [ first_name, last_name ],
-  //   },
-  // },
-);
-```
-
-Or you could also do this:
-
-```js
-const result = tx(
-  {
-    stage0: query(`
-      READ: (m:Movie)
-      WHERE: {
-        m.title: "Doctor Strange",
-      }
-      
-      READ: (p1:Person)
-      WHERE: {
-        p1.first_name: "Benedict",
-        p1.last_name: "Cumberbatch",
-      }
-      
-      READ: (p2:Person)
-      WHERE: {
-        p2.first_name: "Benedict",
-        p2.last_name: "Wong",
-      }
-      
-      CREATE: (p1)-[a:ACTED_IN]->(m)
+  `
+    READ: (m:Movie)
+    WHERE: {
+      m.title: "Doctor Strange",
+    }
     
-      CREATE: (p2)-[a:ACTED_IN]->(m)
+    READ: (p1:Person)
+    WHERE: {
+      p1.first_name: "Benedict",
+      p1.last_name: "Cumberbatch",
+    }
+    
+    READ: (p2:Person)
+    WHERE: {
+      p2.first_name: "Benedict",
+      p2.last_name: "Wong",
+    }
+    
+    CREATE: (p1)-[a:ACTED_IN]->(m)
+  
+    CREATE: (p2)-[a:ACTED_IN]->(m)
 
-      RETURN (p1 {first_name, last_name})-[a]->(m)<-[a]-(p2 {first_name, last_name})
-    `),
-    stage1: query(`
-      RETURN stage0
-    `),
-  },
-  // TODO: Decide if the RETURN clause in the last stage should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
+    RETURN (p1 {first_name, last_name})-[a]->(m)<-[a]-(p2 {first_name, last_name})
+  `,
+  // TODO: Decide if the RETURN clause should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
   // {
   //   RETURN: {
   //     p1: [ first_name, last_name ],
@@ -221,24 +147,23 @@ TODO: I still need to think through how this FOR function should work. For ideas
 
 The FOR clause is similar to Python's `for` loop.
 
+This transaction will bulk insert nodes.
+
 ```js
 const result = tx(
-  {
-    // Bulk insert nodes.
-    stage0: query(`
-      VAR newNodes = []
-      FOR user, index IN $users {
-        CREATE (User {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          created_at: new Date(),
-        })
-      }
-      // RETURN All newly created user nodes.
-      RETURN newNodes
-    `),
-  },
-  // Params
+  `
+    VAR newNodesList = []
+    FOR user, index IN $users {
+      VAR newNode = CREATE (User {
+        first_name: user.first_name,
+        last_name: user.last_name,
+        created_at: new Date(),
+      })
+      newNodesList.append(newNode)
+    }
+    // RETURN All newly created user nodes.
+    RETURN newNodesList
+  `,
   {
     $users: [
       { first_name: "John", last_name: "Smith" },
