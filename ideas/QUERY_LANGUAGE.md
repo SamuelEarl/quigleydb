@@ -34,6 +34,10 @@ The following query ideas are taken from https://docs.edgedb.com/get-started/edg
 
 ---
 
+TODO: I am seeing a pattern where all the queries can/should be performed in stage0 and then stage1 is just a simple RETURN of stage0. That's not very beneficial. Maybe I can get rid of the query function and just use the tx() function. Hmmm. Still thinking through these ideas.
+
+---
+
 ## CREATE Data
 
 ### Create a single node and return individual properties
@@ -206,8 +210,6 @@ const result = tx(
   // },
 );
 ```
-
-TODO: I am seeing a pattern where all the queries can/should be performed in stage0 and then stage1 is just a simple RETURN of stage0. That's not very beneficial. Maybe I can get rid of the query function and just use the tx() function. Hmmm. Still thinking through these ideas.
 
 ### Create multiple nodes/relationships with FOR
 
