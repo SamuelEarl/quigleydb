@@ -102,39 +102,101 @@ const result = tx(
 ```js
 const result = tx(
   `
-    READ: (m:Movie)
+    READ: (movie:Movie)
     WHERE: {
-      m.title: "Doctor Strange",
+      movie.title: "Pirates of the Carribean",
     }
     
-    READ: (p1:Person)
+    READ: (actor:Person)
     WHERE: {
-      p1.first_name: "Benedict",
-      p1.last_name: "Cumberbatch",
+      actor.first_name: "Johnny",
+      actor.last_name: "Depp",
     }
     
-    READ: (p2:Person)
+    READ: (director:Person)
     WHERE: {
-      p2.first_name: "Benedict",
-      p2.last_name: "Wong",
+      director.first_name: "Gore",
+      director.last_name: "Verbinski",
     }
     
-    CREATE: (p1)-[a:ACTED_IN]->(m)
+    CREATE: (actor)-[ACTED_IN]->(movie)
   
-    CREATE: (p2)-[a:ACTED_IN]->(m)
+    CREATE: (director)-[DIRECTED]->(movie)
 
-    RETURN (p1 {first_name, last_name})-[a]->(m)<-[a]-(p2 {first_name, last_name})
+    CREATE: (actor)-[ACTED_UNDER]->(director)
+
+    RETURN (movie)-[ACTED_IN]-(actor {first_name, last_name})-[ACTED_UNDER]-(director {first_name, last_name})-[DIRECTED]-(movie)
   `,
-  // TODO: Decide if the RETURN clause should be an object of properties (like the WHERE clause) or a string of graph relations (like the READ clause).
-  // {
-  //   RETURN: {
-  //     p1: [ first_name, last_name ],
-  //     a: True,
-  //     m: True,
-  //     p2: [ first_name, last_name ],
-  //   },
-  // },
 );
+```
+
+This query would return something like the following JSON object.
+
+The query will start by fetching the first node listed in the RETURN statement and then add data to the JSON object as it continues down the RETURN statement, fetching more data and appending those data to the JSON object.
+
+```json
+{
+  data: {
+    "movie": {
+      "title": "Pirates of the Carribean",
+      "releaseYear": 2003,
+      "genres": ["action", "adventure", "comedy"],
+      "ACTED_IN": [ // In JSON, a relationship is modeled as a property of a node and that relationship (node property) has an array value. See the explanation next to the "actor" property below for more details. 
+      // Each relationship provide data about itself through object properties. NOTE: GraphQL syntax does not provide and data about relationships.
+        {
+          "role": "Jack Sparrow",
+          "awards": ["best actor"],
+          "salary": 2000000000, // Expressed in cents.
+          "actor": { // In JSON, a node that a relationship is pointing to is modeled as a property of the relationship. This is why: In a graph query, each entry node can have multiple relationships pointing "from" the node, so it is necessary to show the relationships that are pointing "from" a node as an array (e.g. the "ACTED_IN" property above). However, each of those relationships will have only one node that it is pointing "to", so it is necessary to show the node that a relationship is pointing to as a property of the relationship and the properties of the "to" node are displayed as a nested object (e.g. the "firstName" and "lastName" properties below).
+            "firstName": "Johnny",
+            "lastName": "Depp",
+            "ACTED_UNDER": [
+              {
+                "director": {
+                  "firstName": "Gore",
+                  "lastName": "Verbinski",
+                  "DIRECTED": [
+                    {
+                      "title": "Pirates of the Carribean",
+                      "releaseYear": 2003,
+                      "genres": ["action", "adventure", "comedy"],
+                    },
+                    {
+                      // Another movie node would go here...
+                    }
+                  ]
+                }
+              },
+              {
+                // Another director node would go here...
+              }
+            ]
+          }
+        },
+        {
+          "role": "Hector Barbossa",
+          "awards": ["best supporting actor"],
+          "salary": 2000000000,
+          "actor": {
+            "firstName": "Geoffrey",
+            "lastName": "Rush",
+            "ACTED_UNDER": [
+              {
+                "director": {
+                  "firstName": "Gore",
+                  "lastName": "Verbinski"
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  metadata: {
+    // This would be data about the query (e.g. errors, query speed, etc).
+  }
+}
 ```
 
 ### Create multiple nodes/relationships with FOR
