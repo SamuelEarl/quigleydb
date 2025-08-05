@@ -1,4 +1,10 @@
-# Quigley - Graph-Document Database with a GQL-inspired query language.
+# GQLr - The design system specifications for a graph-document database with a GQL-inspired query language
+
+When I refer to a "database design system" I am referring to the data model, query language, and response objects that are used to implement the graph-document database.
+
+I think I will start by creating a design specification for the ideal database (in my opinion), which uses human-centered design principles, instead of developing an actual database. This is similar to the GraphQL specification, which did not actually implement the ideas, but simply provided the rules that a GraphQL implementation was supposed to follow. Maybe I could open source these ideas and publish them on my personal website and get feedback and community contributions as I develop these ideas.
+
+---
 
 See the files in the `ideas` directory for more information. Look at my Chrome bookmark for "Computer Science" >> "Database Design" for more resources. 
 
@@ -15,8 +21,12 @@ Multi-modal databases do *not* seem to follow the principle of only one way to d
 
 ## Possible Names
 
+The name should refer to the database design system (i.e. data model, query language, response object) that is used to implement a graph database (e.g. GQL, SQL) and not the database itself (e.g. Neo4j, Postgres).
+
+* GQLr = GQL redesigned. This name would refer to my goal to redesign graph databases to use human-centered design in the data model, query language, and response objects.
 * iGQL = *intuitive* Graph Query Language
-* Quigley = GQL rearranged (and formed into a word or name). This is less insulting.
+* Quigley = GQL rearranged (and formed into a word or name). The name Quigley looks like the letters GQL rearranged and turned into a word (QuiGLey). This name might be less insulting.
+
 
 ---
 
@@ -87,12 +97,6 @@ Look at the Makefile for some commands that can be used to run code in this proj
 This project was created using the Bun runtime. You can follow the instruction on Bun's website to [install Bun on your computer](https://bun.sh/docs/installation).
 
 Using npm scripts: You can run the entire Quigley library with `bun` by running `bun run demo-project` from the project root directory.
-
----
-
-## Why the name Quigley
-
-The name Quigley looks like the letters GQL rearranged and turned into a word (QuiGLey).
 
 ---
 
