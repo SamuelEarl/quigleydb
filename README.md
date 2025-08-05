@@ -1,4 +1,4 @@
-# GQLr - The design system specifications for a graph-document database with a GQL-inspired query language
+# GQLr: Graph Query Language Redesigned - The design system specifications for a graph-document database with a GQL-inspired query language
 
 When I refer to a "database design system" I am referring to the data model, query language, and response objects that are used to implement the graph-document database.
 
