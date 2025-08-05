@@ -1,6 +1,6 @@
 # GQLr: Graph Query Language Redesigned - The design system specifications for a graph-document database with a GQL-inspired query language
 
-When I refer to a "database design system" I am referring to the data model, query language, and response objects that are used to implement the graph-document database.
+When I refer to a "database design system" I am referring to the data model, data browser, query language, and response objects that are used to implement the graph-document database.
 
 I think I will start by creating a design specification for the ideal database (in my opinion), which uses human-centered design principles, instead of developing an actual database. This is similar to the GraphQL specification, which did not actually implement the ideas, but simply provided the rules that a GraphQL implementation was supposed to follow. Maybe I could open source these ideas and publish them on my personal website and get feedback and community contributions as I develop these ideas.
 
