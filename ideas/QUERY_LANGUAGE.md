@@ -56,13 +56,20 @@ result = db.tx(
     """
     var movie: Path[(Movie)] = CREATE(
         (m:Movie {
-            "title": $title,
-            "release_year": $release_year,
+            "PROPS": {
+                "title": $title,
+                "release_year": $release_year,
+            },
+            "RETURN": {
+                "id",
+                "title",
+                "release_year",
+            }
         })
     )
 
     # Define a graph literal in the RETURN clause, which describes what to return from the query.
-    RETURN (movie {"id", "title", "release_year"})
+    RETURN movie
     """,
     # Params
     {
@@ -79,13 +86,21 @@ result = db.tx(
     """
     var path: Path[[(Movie)-[MOVIE_ACTOR]-(Actor)] = CREATE(
         (m:Movie {
-            "title": $title,
-            "release_year": $release_year,
+            "PROPS": {
+                "title": $title,
+                "release_year": $release_year,
+            },
         })
-        -[r:MOVIE_ACTOR {"created_at": $created_at}]-
+        -[r:MOVIE_ACTOR {
+            "PROPS": {
+                "created_at": $created_at,
+            },
+        ]-
         (a:Actor {
-            "first_name": $first_name,
-            "last_name": $last_name,
+            "PROPS": {
+                "first_name": $first_name,
+                "last_name": $last_name,
+            },
         })
     )
 
@@ -123,15 +138,19 @@ result = db.tx(
     
     var actor: Path[(Person)] = READ(
         (p:Person {
-            "first_name": "Johnny",
-            "last_name": "Depp",
+            "WHERE": {
+                "first_name": "Johnny",
+                "last_name": "Depp",
+            },
         })
     )
     
     var director: Path[(Person)] = READ(
         (p:Person {
-            "first_name": "Gore",
-            "last_name": "Verbinski",
+            "WHERE": {
+                "first_name": "Gore",
+                "last_name": "Verbinski",
+            },
         })
     )
 
@@ -152,10 +171,23 @@ result = db.tx(
 
     # If you have a complex data object that you want to return, then call the READ() function and pass it the query path.
     var path: Path[(Movie)-[ACTED_IN]-(Actor)-[ACTED_UNDER]-(Director)-[DIRECTED]-(Movie)] = READ(
-        (movie)-[ACTED_IN]-(actor { "RETURN": "first_name", "last_name"})-[ACTED_UNDER]-(director { "RETURN": "first_name", "last_name"})-[DIRECTED]-(movie)
+        (movie)
+        -[ACTED_IN]-
+        (actor { "RETURN": "first_name", "last_name"})
+        -[ACTED_UNDER]-
+        (director { "RETURN": "first_name", "last_name"})
+        -[DIRECTED]-
+        (movie)
     )
 
     RETURN path
+
+    # You can also filter what is returned from the path like this:
+
+    # RETURN path[(director)-[DIRECTED]-(movie)]
+    
+    # This RETURN clause specifies the variable that you want to return (`path` in this example), followed by brackets, and then a path literal is passed inside those brackets that specifies the subset of data to return.
+    # This RETURN clause will return a subset of the data from the query: All directors and the movies they directed (along with the [DIRECTED] relationship that connects directors to their movies.
     """,
 )
 ```
@@ -243,6 +275,9 @@ result = db.tx(
             "WHERE": {
                 "title": INCLUDES($keyword),
                 "release_year": IS_GREATER_THAN($year),
+            },
+            ORDER_BY {
+                "title": "ASC",
             }
         })
         -[r:MOVIE_ACTOR]-
@@ -254,11 +289,7 @@ result = db.tx(
         })
     )
 
-    RETURN path
-
-    ORDER_BY {
-        path.m.title: "ASC",
-    }
+    RETURN path    
     """,
     {
         "$keyword": "hero",
@@ -269,7 +300,7 @@ result = db.tx(
 )
 ```
 
-The RETURN clause states to return only the Actors from the path, which will return a flat list of Actors.
+# Filter what is returned from a path of objects (nodes and relations)
 
 ```py
 result = db.tx(
@@ -293,8 +324,10 @@ result = db.tx(
         })
     )
 
-    # You can filter what is returned from the path by specifying the return variable followed by brackets and then passing a path literal inside those brackets.
     RETURN path[(a)]
+
+    # You can filter what is returned from the path by specifying the return variable followed by brackets and then passing a path literal inside those brackets.
+    # This RETURN clause will only return the Actors from the path, which will return a flat list of Actors in this case instead of a hierarchical object of data.
     """,
     {
         "$keyword": "hero",
