@@ -6,7 +6,7 @@ These are some ideas for a query language that is simple and intuitive. I want t
 
 I want there to be only one way to do something (similar to Python's manifesto). For example:
 
-* To filter READ operations, I want to use a WHERE property. I do *NOT* also want to allow a filter to be applied inside the READ operation. That can get confusing.
+* To filter READ operations, I want to use an explicit WHERE property.
 * GQL allows for multiple ways to create data (CREATE, MERGE, others?). That is very confusing. You should only be able to create data with the CREATE clause and nothing else.
 
 There should be only one way to perform an operation.
@@ -53,23 +53,22 @@ You have to specify what you want returned from the transaction using a RETURN c
 
 ```py
 result = db.tx(
-	"""
-	var movie: Node = CREATE():
-		(m:Movie {
-			"title": $title,
-			"release_year": $release_year,
-		})
+    """
+    var movie: Path[(Movie)] = CREATE(
+        (m:Movie {
+            "title": $title,
+            "release_year": $release_year,
+        })
+    )
 
-		# Define a graph literal in the return statement, which describes what to return from the query.
-		return (m {"id", "title", "release_year"})
-
-	RETURN movie
-	""",
-	# Params
-	{
-		"$title": "Avengers: The Kang Dynasty",
-		"$release_year": 2025,
-	}
+    # Define a graph literal in the RETURN clause, which describes what to return from the query.
+    RETURN (movie {"id", "title", "release_year"})
+    """,
+    # Params
+    {
+        "$title": "Avengers: The Kang Dynasty",
+        "$release_year": 2025,
+    }
 )
 ```
 
@@ -77,67 +76,87 @@ result = db.tx(
 
 ```py
 result = db.tx(
-  	"""
-    var data: Path[[Node][Relation][Node]] = CREATE():
-      	(m:Movie {
-        	"title": $title,
-        	"release_year": $release_year,
-      	})
-      	-[r:MOVIE_ACTOR {"created_at": $created_at}]-
-      	(a:Actor {
-        	"first_name": $first_name,
-        	"last_name": $last_name,
-      	})
-      	return (m)-[r]-(a)
+    """
+    var path: Path[[(Movie)-[MOVIE_ACTOR]-(Actor)] = CREATE(
+        (m:Movie {
+            "title": $title,
+            "release_year": $release_year,
+        })
+        -[r:MOVIE_ACTOR {"created_at": $created_at}]-
+        (a:Actor {
+            "first_name": $first_name,
+            "last_name": $last_name,
+        })
+    )
 
-    RETURN data
-  	""",
-  	{
-		"$title": "Avengers: The Kang Dynasty",
-		"$release_year": 2025,
-		"$first_name": "John",
-		"$last_name": "Smith,
-		"$created_at": datetime.datetime.now(),
-  	},
+    RETURN path
+    """,
+    {
+        "$title": "Avengers: The Kang Dynasty",
+        "$release_year": 2025,
+        "$first_name": "John",
+        "$last_name": "Smith,
+        "$created_at": datetime.datetime.now(),
+    },
 )
 ```
 
 ### Create new relationships between existing nodes
 
+NOTE: You can filter inside a READ() function by passing a `WHERE` clause to node or relation properties. You can also pass a `RETURN` clause inside a node or relation properties to specify which properties you want to return, which is similar to how GraphQL works. However, if you do not pass a `RETURN` clause to a node or relation, then all properties for that node or relation will be returned.
+
 ```py
 result = db.tx(
-  """
-    var movie = READ():
-      (Movie {
-        title: "Pirates of the Carribean",
-      })
+    """
+    var movie: Path[(Movie)] = READ(
+        (m:Movie {
+            "WHERE": {
+                "title": "Pirates of the Carribean",
+            },
+            "RETURN": {
+                "title",
+                "releaseYear",
+                "genres",
+            },
+        })
+    )
     
-    var actor = READ():
-      (Person {
-        first_name: "Johnny",
-        last_name: "Depp",
-      })
+    var actor: Path[(Person)] = READ(
+        (p:Person {
+            "first_name": "Johnny",
+            "last_name": "Depp",
+        })
+    )
     
-    var director = READ():
-      (Person {
-        first_name: "Gore",
-        last_name: "Verbinski",
-      })
-    
-    var acted_in_path = CREATE():
-      (actor)-[ACTED_IN]->(movie)
-  
-    var directed_path = CREATE():
-      (director)-[DIRECTED]->(movie)
+    var director: Path[(Person)] = READ(
+        (p:Person {
+            "first_name": "Gore",
+            "last_name": "Verbinski",
+        })
+    )
 
-    var acted_under_path = CREATE():
-      (actor)-[ACTED_UNDER]->(director)
+    # Create relation
+    CREATE(
+        (actor)-[ACTED_IN]->(movie)
+    )
 
-    var path = READ():
-      (movie)-[ACTED_IN]-(actor {first_name, last_name})-[ACTED_UNDER]-(director {first_name, last_name})-[DIRECTED]-(movie)
+    # Create relation
+    CREATE(
+        (director)-[DIRECTED]->(movie)
+    )
+
+    # Create relation
+    CREATE(
+        (actor)-[ACTED_UNDER]->(director)
+    )
+
+    # If you have a complex data object that you want to return, then call the READ() function and pass it the query path.
+    var path: Path[(Movie)-[ACTED_IN]-(Actor)-[ACTED_UNDER]-(Director)-[DIRECTED]-(Movie)] = READ(
+        (movie)-[ACTED_IN]-(actor { "RETURN": "first_name", "last_name"})-[ACTED_UNDER]-(director { "RETURN": "first_name", "last_name"})-[DIRECTED]-(movie)
+    )
 
     RETURN path
-  """,
+    """,
 )
 ```
 
@@ -210,45 +229,6 @@ The query will start by fetching the first node listed in the RETURN statement a
 }
 ```
 
-### Create multiple nodes/relationships with FOR
-
-<!-- 
-TODO: I still need to think through how this FOR function should work. For ideas on how I should design the functionality of this FOR function, see:
-* Neo4j's FOREACH: https://neo4j.com/docs/cypher-manual/current/clauses/foreach/
-* GelDB's for statement: https://docs.geldata.com/reference/edgeql/for
--->
-
-The FOR clause is similar to Python's `for` loop.
-
-This transaction will bulk insert nodes.
-
-```py
-result = db.tx(
-  """
-    var newNodesList = []
-    FOR user, index in $users {
-      var newNode = CREATE():
-        (User {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          created_at: datetime.datetime.now(),
-        })
-
-      newNodesList.append(newNode)
-
-    # RETURN All newly created user nodes.
-    RETURN newNodesList
-  """,
-  {
-    $users: [
-      { first_name: "John", last_name: "Smith" },
-      { first_name: "Steve", last_name: "Johnson" },
-      { first_name: "Will", last_name: "Ferguson" },
-    ],
-  }
-)
-```
-
 ---
 
 ## READ Data
@@ -257,99 +237,112 @@ result = db.tx(
 
 ```py
 result = db.tx(
-  """
-    var result = READ():
-      (m:Movie {
-        title: INCLUDES($keyword),
-        release_year: IS_GREATER_THAN($year),
-      })
-      -[r:MOVIE_ACTOR]-
-      (a:ACTOR {
-        first_name: $first_name,
-        last_name: $last_name,
-      })
+    """
+    var path: Path[(Movie)-[Movie_Actor]-(Actor)] = READ(
+        (m:Movie {
+            "WHERE": {
+                "title": INCLUDES($keyword),
+                "release_year": IS_GREATER_THAN($year),
+            }
+        })
+        -[r:MOVIE_ACTOR]-
+        (a:Actor {
+            "WHERE": {
+                "first_name": EQUALS($first_name),
+                "last_name": EQUALS($last_name),
+            },
+        })
+    )
 
-    RETURN result
+    RETURN path
 
     ORDER_BY {
-      result.m.title: "ASC",
+        path.m.title: "ASC",
     }
-  """,
-  {
-    $keyword: "hero",
-    $year: 2000,
-    $first_name: "John",
-    $last_name: "Smith",
-  }
+    """,
+    {
+        "$keyword": "hero",
+        "$year": 2000,
+        "$first_name": "John",
+        "$last_name": "Smith",
+    }
 )
 ```
 
-TODO: Should all CRUD functions have an implicit RETURN unless specified? For example, the following query uses an explicit RETURN in the READ function and the ORDER_BY clause takes that into account by referencing `result.last_name` instead of `result.a.last_name`.
+The RETURN clause states to return only the Actors from the path, which will return a flat list of Actors.
 
 ```py
 result = db.tx(
-  """
-    var result = READ():
-      (m:Movie {
-        title: INCLUDES($keyword),
-        release_year: IS_GREATER_THAN($year),
-      })
-      -[r:MOVIE_ACTOR]-
-      (a:ACTOR {
-        first_name: $first_name,
-        last_name: $last_name,
-      })
+    """
+    var path: Path[(Movie)-[MOVIE_ACTOR]-(Actor)] = READ(
+        (m:Movie {
+            "WHERE": {
+                "title": INCLUDES($keyword),
+                "release_year": IS_GREATER_THAN($year),
+            },
+        })
+        -[r:MOVIE_ACTOR]-
+        (a:Actor {
+            "WHERE": {
+                "first_name": EQUALS($first_name),
+                "last_name": EQUALS($last_name),
+            },
+            "ORDER_BY": {
+                "last_name": "ASC",
+            }
+        })
+    )
 
-      return a
-
-    RETURN result
-
-    ORDER_BY {
-      result.last_name: "ASC",
+    # You can filter what is returned from the path by specifying the return variable followed by brackets and then passing a path literal inside those brackets.
+    RETURN path[(a)]
+    """,
+    {
+        "$keyword": "hero",
+        "$year": 2000,
+        "$first_name": "John",
+        "$last_name": "Smith",
     }
-  """,
-  {
-    $keyword: "hero",
-    $year: 2000,
-    $first_name: "John",
-    $last_name: "Smith",
-  }
 )
 ```
 
 
 ### Read Data with Filtering, Ordering, and Pagination
 
-The ORDER_BY, SKIP, and LIMIT clauses go after the RETURN clause. You can think of them as being part of the RETURN clause.
+The ORDER_BY, SKIP, and LIMIT clauses go after the node/relation RETURN clause. You can think of them as being part of the RETURN clause.
+
+The results will be returned in a hierarchy and this is how you can specify which parts of the hierarchy can be skipped and/or limited.
+
+For ideas, look at how GelDB handles this (https://docs.geldata.com/learn/edgeql#filtering-ordering-and-pagination) and Neo4j (https://neo4j.com/docs/cypher-manual/current/clauses/skip/). Although, Neo4j returns a flat array of results, so that might not be too beneficial.
 
 ```py
 result = db.tx(
-  	"""
-    var path = READ():
-    	(m:Movie {
-        	"release_year": IS_GREATER_THAN(2017),
-      	})
-      	<-[a:ACTED_IN]-
-      	(p:Person)
-
-      	return (m {"id", "title"})<-[a]-(p {"first_name", "last_name"})
+    """
+    var path: Path[(Movie)<-[ACTED_IN]-(Person)] = READ(
+        (m:Movie {
+            "WHERE": {
+                "release_year": IS_GREATER_THAN(2017),
+            },
+            "RETURN": {
+                "id",
+                "title",
+            },
+            "ORDER_BY": {
+                "title": "ASC",
+            },
+            "SKIP": 10,
+            "LIMIT": 10,
+        })
+        <-[a:ACTED_IN]-
+        (p:Person {
+            "RETURN": {
+                "first_name", 
+                "last_name",
+            }
+        })
+    )
 
     RETURN path
-
-    ORDER_BY {
-      path.m.title: "ASC",
-    }
-
-    # TODO: The results will be returned in a hierarchy, so I need to figure out how to skip and limit different parts of the hierarchical result set. Maybe what I have recorded below will work.
-    # For ideas, look at how GelDB handles this (https://docs.geldata.com/learn/edgeql#filtering-ordering-and-pagination) and Neo4j (https://neo4j.com/docs/cypher-manual/current/clauses/skip/). Although, Neo4j returns a flat array of results, so that might not be too beneficial.
-    SKIP: {
-      path.m: 10,
-    }
-
-    LIMIT: {
-      path.m: 10,
-    }
-  """
+    """
 )
 ```
 
@@ -357,24 +350,36 @@ result = db.tx(
 
 ## UPDATE Data
 
-### Use the READ and UPDATE functions to update data
+### Use the UPDATE function along with the SET option to update data
 
 Only the properties that are specified in the UPDATE function will be updated. Nothing else will be touched.
 
+The UPDATE() function will only return the `id` field of the objects that were updated. If you want to retrieve an updated object, then use the READ() function to retrieve it (maybe by its `id`).
+
 ```py
 result = db.tx(
-  	"""
-    var movie: Node = READ():
-    	(m:Movie {
-        	"title": $title,
-      	})
-		return m
+    """
+    var updatedMovieId: Path[(Movie)] = UPDATE(
+        (Movie {
+            "WHERE": {
+                "title": EQUALS($title),
+            },
+            "SET": {
+                "title": $newTitle,
+            }
+        })
+    )
 
-    var updatedMovie: Node = UPDATE():
-      	movie.title = $newTitle
-	  	return movie
+    RETURN updatedMovieId
 
-    RETURN updatedMovie
+    # Return value:
+    # {
+    #     data: {
+    #         Movie: "1234", # This is the `id` of the updated object.
+    #         # Movie: [ "1234", "5678", ... ] # If multiple Movie nodes were updated, then it would return an array of `id`s.
+    #     },
+    #     metadata: {}
+    # }
   """,
   {
     "$title": "Doctor Strange 2",
@@ -387,30 +392,68 @@ result = db.tx(
 
 ```py
 result = db.tx(
-  """
-    var path = READ():
-      (m:Movie {
-        m.title: $title,
-      })
-      <-[a:ACTED_IN]-
-      (p:Person)
+    """
+    var updatedRelationId: Path[] = UPDATE(
+        (m:Movie {
+            "WHERE": {
+                "title": $title,
+            },
+        })
+        <-[a:ACTED_IN {
+            "SET": {
+                "year": $updatedYear,
+            },
+        }]-
+        (p:Person)
+    )
 
-    var updatedRelation = UPDATE():
-      path.a.year = $updatedYear
+    RETURN updatedRelationId
+    """,
+    {
+        $title: "Doctor Strange 2",
+        $updatedYear: 2021,
+    }
+)
+```
 
-    var updatedPath = READ():
-      (m:Movie {
-        m.title: $title,
-      })
-      <-[a:ACTED_IN]-
-      (p:Person)
+### Update multiple nodes/relationships with for loops
 
-    RETURN updatedPath
-  """,
-  {
-    $title: "Doctor Strange 2",
-    $updatedYear: 2021,
-  }
+<!-- 
+TODO: I still need to think through how this for loop should work. For ideas on how I should design the functionality of this FOR function, see:
+* Neo4j's FOREACH: https://neo4j.com/docs/cypher-manual/current/clauses/foreach/
+* GelDB's for statement: https://docs.geldata.com/reference/edgeql/for
+-->
+
+Since the queries are just Mojo code, it is easy to update multiple objects using a for loop.
+
+```py
+result = db.tx(
+    """
+    var newNodesList = []
+    for user, index in $users:
+        var newNode = UPDATE(
+            (User {
+                "WHERE": {
+                    "id": EQUALS(user.id),
+                },
+                "SET": {
+                    "age": INCREMENT(user.age, user.age + 1),
+                },
+            })
+        )
+
+        newNodesList.append(newNode)
+
+    # RETURN All newly created user nodes.
+    RETURN newNodesList
+    """,
+    {
+        "$users": [
+            { "id": 1, "first_name": "John", "last_name": "Smith" },
+            { "id": 2, "first_name": "Steve", "last_name": "Johnson" },
+            { "id": 3, "first_name": "Will", "last_name": "Ferguson" },
+        ],
+    }
 )
 ```
 
@@ -418,53 +461,40 @@ result = db.tx(
 
 ## DELETE Data
 
-### Use the READ and DELETE functions to delete data
+### Use the DELETE function to delete data
 
 Any nodes/relationship that you specify in the RETURN clause will return the `id` of the node/relationships that have been deleted.
 
+The DELETE() function will only return the `id` field of the objects that were deleted.
+
 ```py
 result = db.tx(
   """
-    var movie = READ():
-      (Movie {
-        title: STARTS_WITH("the avengers"),
-      })
-
-    var deletedMovieId = DELETE():
-      movie
+    var deletedMovieId = DELETE(
+        (m:Movie {
+            "WHERE": {
+                "title": STARTS_WITH("the avengers"),
+            },
+            "DELETE": True,
+        })
+    )
 
     RETURN deletedMovieId
+
+    # Return value:
+    # {
+    #     data: {
+    #         m: "1234", # This is the `id` of the deleted object.
+    #     },
+    #     metadata: {}
+    # }
   """,
-)
-```
-
-### How to DELETE properties
-
-You can delete individual properties by specifying those properties inside the DELETE function. Any other properties that are not specified will be left untouched and the rest of the node/relationship will still exist.
-
-```py
-result = db.tx(
-  """
-    var movie = READ():
-      (Movie {
-        id: EQUALS($id)
-      })
-
-    var movieWithDeletedProps = DELETE():
-      movie.viewer_rating
-      movie.release_year
-
-    RETURN movieWithDeletedProps
-  """,
-  {
-    $id: "1234",
-  }
 )
 ```
 
 ### Deleting relationships
 
-In order to delete nodes that have relationships to other nodes, you first have to delete any and all relationships that those nodes have. Then you can delete the nodes.
+In order to delete nodes that have relationships to other nodes, you first have to delete any and all relationships that those nodes have. Then you can delete the nodes. Or you can do it all in one query.
 
 You can delete a relationship between two existing nodes by specifying the relationship in a DELETE function.
 
@@ -472,81 +502,89 @@ Since each query runs a transaction of operations, you can specify only the data
 
 ```py
 result = db.tx(
-  """
-    var path = READ():
-      (m:Movie {
-        id: EQUALS($mId),
-      })<-[a:ACTED_IN]-(p:Person {
-        id: EQUALS($pId),
-      })
-
-    var deletedRelationId = DELETE():
-      path.a
-
-    var deletedMovieId = DELETE():
-      path.m
-
-    var deletedPersonId = DELETE():
-      path.p
+    """
+    var deletedObjects = DELETE(
+        (m:Movie {
+            "WHERE": {
+                "id": EQUALS($mId),
+            },
+            "DELETE": True,
+        })
+        <-[a:ACTED_IN {
+            "DELETE": True,
+        }]-
+        (p:Person {
+            "WHERE": {
+                "id": EQUALS($pId),
+            },
+            "DELETE": True,
+        })
+    )
     
-    RETURN {
-      deletedMovieId,
-      deletedRelationId,
-      deletedPersonId,
+    RETURN deletedObjects
+
+    # Return value:
+    # {
+    #     data: {
+    #         # These are the `id`s of the deleted objects.
+    #         a: "0987",
+    #         m: "1234",
+    #         p: "5678",
+    #     },
+    #     metadata: {}
+    # }
+    """,
+    {
+        "$mId": "1234",
+        "$pId": "5678",
     }
-  """,
-  {
-    $mId: "1234",
-    $pId: "5678",
-  }
 )
 ```
 
-Or you can combine all of the DELETE operations together into one DELETE operation object.
+### Delete properties with the DELETE function and the REMOVE option
+
+You can delete individual properties by specifying those properties inside the "REMOVE" option of a DELETE function. Any other properties that are not specified will be left untouched and the rest of the node/relationship will still exist.
 
 ```py
 result = db.tx(
-  """
-    var path = READ():
-      (m:Movie {
-        id: EQUALS($mId),
-      })<-[a:ACTED_IN]-(p:Person {
-        id: EQUALS($pId),
-      })
+    """
+    var movieWithDeletedProps = DELETE(
+        (Movie {
+            "WHERE": {
+                "id": EQUALS($id)
+            },
+            "REMOVE": {
+                "viewer_rating",
+                "release_year",
+            }
+        })
+    )
 
-    var deletedDataIds = DELETE():
-      path.a # The relationship that is to be deleted needs to be listed first.
-      path.m
-      path.p
-    
-    RETURN deletedDataIds
-  """,
-  {
-    $mId: "1234",
-    $pId: "5678",
-  }
+    RETURN movieWithDeletedProps
+    """,
+    {
+        $id: "1234",
+    }
 )
+```
 
 
 TODO: EdgeQL says that delete clauses can contain `filter`, `order by`, `offset`, and `limit` clauses (https://docs.edgedb.com/get-started/edgeql#delete-objects). (My versions of those clauses are WHERE, ORDER_BY, SKIP, and LIMIT.) Do those clauses make sense for deleting data, as in the follow example?
 
 ```py
 result = db.tx(
-  """
-    var movie = READ():
-      (Movie {
-        title: STARTS_WITH("the avengers"),
-      })
-
-    var deletedMovieIds = DELETE():
-      movie
+    """
+    var deletedMovieIds = DELETE(
+        (Movie {
+            "WHERE": {
+                "title": STARTS_WITH("the avengers"),
+            },
+            "LIMIT": 3,
+        })
+    )
 
     RETURN deletedMovieIds
-
-    LIMIT: {
-      deletedMovieIds: 3,
-    }
-  """
+    """
 )
 ```
 
@@ -556,18 +594,29 @@ result = db.tx(
 
 ```py
 result = db.tx(
-  """
-    var path = READ():
-      (m:Movie)<-[r:ACTED_IN]-(p:Person)
-      RETURN (m {title, title_upper, cast_size})<-[r]-(p)
+    """
+    var path = READ(
+        (m:Movie {
+            COMPUTED: {
+                "title_upper": title.upper(),
+                "cast_size": COUNT(p)
+            }
+            "RETURN": {
+                "title",
+                "title_upper",
+                "cast_size",
+            }
+        })
+        <-[r:ACTED_IN]-
+        (p:Person {
+            COMPUTED: {
+                "cast_size": COUNT(p)
+            }
+        })
+    )
 
     RETURN path
-
-    COMPUTED: {
-      path.m.title_upper: UPPER(),
-      path.m.cast_size: COUNT(p)
-    }
-  """,
+    """,
 )
 ```
 
