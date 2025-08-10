@@ -186,7 +186,7 @@ result = db.tx(
 
     # RETURN path[(director)-[DIRECTED]-(movie)]
     
-    # This RETURN clause specifies the variable that you want to return (`path` in this example), followed by brackets, and then a path literal is passed inside those brackets that specifies the subset of data to return.
+    # The RETURN clause above specifies the variable that you want to return (`path` in this example), followed by brackets, and then a path literal is passed inside those brackets that specifies the subset of data to return.
     # This RETURN clause will return a subset of the data from the query: All directors and the movies they directed (along with the [DIRECTED] relationship that connects directors to their movies.
     """,
 )
