@@ -1,0 +1,9 @@
+name: database-pocs
+channels:
+  - conda
+  - conda-forge
+dependencies:
+  - python==3.13
+  - pip
+  - pip:
+      - uuid-utils==0.11.0
