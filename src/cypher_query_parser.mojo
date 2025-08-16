@@ -11,7 +11,7 @@ struct CypherQuery:
     var conditions: List[String]
     var returns: List[String]
     
-    fn __init__(inout self):
+    fn __init__(out self):
         self.query_type = ""
         self.node_patterns = List[String]()
         self.edge_patterns = List[String]()
@@ -19,7 +19,7 @@ struct CypherQuery:
         self.returns = List[String]()
 
 struct CypherParser:
-    fn __init__(inout self):
+    fn __init__(out self):
         pass
     
     fn parse(self, query: String) -> CypherQuery:

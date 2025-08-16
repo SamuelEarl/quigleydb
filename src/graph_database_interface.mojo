@@ -3,17 +3,19 @@
 # ==============================================================================
 
 from collections import List
+from graph_query_engine import GraphQueryEngine
+from core_data_structures import NodeID, EdgeID
 
 struct GraphDatabase:
     var query_engine: GraphQueryEngine
     
-    fn __init__(inout self, max_nodes: Int = 10000):
+    fn __init__(out self, max_nodes: Int = 10000):
         self.query_engine = GraphQueryEngine(max_nodes)
     
-    fn execute(inout self, cypher_query: String) -> List[String]:
+    fn execute(self, cypher_query: String) -> List[String]:
         return self.query_engine.execute_query(cypher_query)
     
-    fn create_node(inout self, labels: List[String]) -> NodeID:
+    fn create_node(self, labels: List[String]) -> NodeID:
         var node_id = NodeID(self.query_engine.store.node_counter)
         self.query_engine.store.node_counter += 1
         
@@ -24,7 +26,7 @@ struct GraphDatabase:
         self.query_engine.store.store_node(new_node)
         return node_id
     
-    fn create_edge(inout self, from_id: NodeID, to_id: NodeID, rel_type: String) -> EdgeID:
+    fn create_edge(self, from_id: NodeID, to_id: NodeID, rel_type: String) -> EdgeID:
         var edge_id = EdgeID(self.query_engine.store.edge_counter)
         self.query_engine.store.edge_counter += 1
         
@@ -32,8 +34,8 @@ struct GraphDatabase:
         self.query_engine.store.store_edge(new_edge)
         return edge_id
     
-    fn shortest_path(inout self, from_id: NodeID, to_id: NodeID) -> List[NodeID]:
+    fn shortest_path(self, from_id: NodeID, to_id: NodeID) -> List[NodeID]:
         return self.query_engine.find_shortest_path(from_id, to_id)
     
-    fn pagerank(inout self) -> List[Float64]:
+    fn pagerank(self) -> List[Float64]:
         return self.query_engine.compute_pagerank()

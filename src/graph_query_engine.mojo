@@ -3,16 +3,18 @@
 # ==============================================================================
 
 from collections import List
+from key_value_store import GraphKeyValueStore
+from cypher_query_parser import CypherParser, CypherQuery
 
 struct GraphQueryEngine:
     var store: GraphKeyValueStore
     var parser: CypherParser
     
-    fn __init__(inout self, max_nodes: Int = 10000):
+    fn __init__(out self, max_nodes: Int = 10000):
         self.store = GraphKeyValueStore(max_nodes)
         self.parser = CypherParser()
     
-    fn execute_query(inout self, query: String) -> List[String]:
+    fn execute_query(self, query: String) -> List[String]:
         var parsed = self.parser.parse(query)
         var results = List[String]()
         
@@ -23,7 +25,7 @@ struct GraphQueryEngine:
         
         return results
     
-    fn execute_match(inout self, query: CypherQuery) -> List[String]:
+    fn execute_match(self, query: CypherQuery) -> List[String]:
         var results = List[String]()
         
         # Use sparse matrix operations for graph traversal
@@ -44,11 +46,11 @@ struct GraphQueryEngine:
         for i in range(len(reachable)):
             if reachable[i] > 0 and i in self.store.index_to_node_id:
                 var node_id = self.store.index_to_node_id[i]
-                results.append("node_id:" + str(node_id))
+                results.append("node_id:" + String(node_id))
         
         return results
     
-    fn execute_create(inout self, query: CypherQuery) -> List[String]:
+    fn execute_create(self, query: CypherQuery) -> List[String]:
         var results = List[String]()
         
         # Create a new node (simplified)
@@ -59,11 +61,11 @@ struct GraphQueryEngine:
         new_node.add_label("Person")
         
         self.store.store_node(new_node)
-        results.append("Created node: " + str(node_id.id))
+        results.append("Created node: " + String(node_id.id))
         
         return results
     
-    fn find_shortest_path(inout self, from_id: NodeID, to_id: NodeID) -> List[NodeID]:
+    fn find_shortest_path(self, from_id: NodeID, to_id: NodeID) -> List[NodeID]:
         var path = List[NodeID]()
         
         if from_id.id not in self.store.node_id_to_index or to_id.id not in self.store.node_id_to_index:
@@ -120,7 +122,7 @@ struct GraphQueryEngine:
         
         return path
     
-    fn compute_pagerank(inout self, damping_factor: Float64 = 0.85, iterations: Int = 100) -> List[Float64]:
+    fn compute_pagerank(self, damping_factor: Float64 = 0.85, iterations: Int = 100) -> List[Float64]:
         var num_nodes = len(self.store.node_id_to_index)
         var pagerank = List[Float64]()
         var new_pagerank = List[Float64]()

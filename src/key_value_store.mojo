@@ -3,6 +3,7 @@
 # ==============================================================================
 
 from collections import Dict
+from sparse_matrix import SparseMatrix
 
 struct GraphKeyValueStore:
     var nodes: Dict[String, String]  # Serialized node data
@@ -14,7 +15,7 @@ struct GraphKeyValueStore:
     var index_to_node_id: Dict[Int, UInt64]
     var max_nodes: Int
     
-    fn __init__(inout self, max_nodes: Int = 10000):
+    fn __init__(out self, max_nodes: Int = 10000):
         self.nodes = Dict[String, String]()
         self.edges = Dict[String, String]()
         self.node_counter = 0
@@ -25,14 +26,14 @@ struct GraphKeyValueStore:
         self.max_nodes = max_nodes
     
     fn node_key(self, node_id: NodeID) -> String:
-        return "node:" + str(node_id.id)
+        return "node:" + String(node_id.id)
     
     fn edge_key(self, edge_id: EdgeID) -> String:
-        return "edge:" + str(edge_id.id)
+        return "edge:" + String(edge_id.id)
     
     fn serialize_node(self, node: Node) -> String:
         # Simple serialization (in practice, use proper serialization format)
-        var result = str(node.id.id) + "|"
+        var result = String(node.id.id) + "|"
         for i in range(len(node.labels)):
             result += node.labels[i] + ","
         result += "|"
@@ -40,9 +41,9 @@ struct GraphKeyValueStore:
     
     fn serialize_edge(self, edge: Edge) -> String:
         # Simple serialization
-        return str(edge.id.id) + "|" + str(edge.from_node.id) + "|" + str(edge.to_node.id) + "|" + edge.relationship_type
+        return String(edge.id.id) + "|" + String(edge.from_node.id) + "|" + String(edge.to_node.id) + "|" + edge.relationship_type
     
-    fn store_node(inout self, node: Node):
+    fn store_node(out self, node: Node):
         var key = self.node_key(node.id)
         var serialized = self.serialize_node(node)
         self.nodes[key] = serialized
@@ -53,7 +54,7 @@ struct GraphKeyValueStore:
             self.node_id_to_index[node.id.id] = index
             self.index_to_node_id[index] = node.id.id
     
-    fn store_edge(inout self, edge: Edge):
+    fn store_edge(out self, edge: Edge):
         var key = self.edge_key(edge.id)
         var serialized = self.serialize_edge(edge)
         self.edges[key] = serialized

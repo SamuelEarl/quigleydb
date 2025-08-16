@@ -12,7 +12,7 @@ struct SparseMatrix:
     var values: List[Float64]
     var nnz: Int  # number of non-zero elements
     
-    fn __init__(inout self, rows: Int, cols: Int):
+    fn __init__(out self, rows: Int, cols: Int):
         self.rows = rows
         self.cols = cols
         self.row_indices = List[Int]()
@@ -20,7 +20,7 @@ struct SparseMatrix:
         self.values = List[Float64]()
         self.nnz = 0
     
-    fn set(inout self, row: Int, col: Int, value: Float64):
+    fn set(out self, row: Int, col: Int, value: Float64):
         # Find if element already exists
         for i in range(self.nnz):
             if self.row_indices[i] == row and self.col_indices[i] == col:
