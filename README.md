@@ -1,6 +1,6 @@
-# GQLr: Graph Query Language Redesigned
+# QuigleyDB
 
-These are the design system specifications for a document-graph database with a GQL-inspired query language.
+These are the design system specifications for a document-graph database with a GQL-inspired query language, which I will call Graph Query Language Redesigned (GQLr).
 
 When I refer to a "database design system" I am referring to the data model, data browser, query language, and response objects that are used to implement the document-graph database.
 
