@@ -1,4 +1,4 @@
-import { quigley as qgly } from "../../src";
+import { quigley as qgly } from "./middleware/";
 
 
 // const query = `

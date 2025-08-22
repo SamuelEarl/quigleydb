@@ -1,0 +1,131 @@
+# This is another idea for defining a GQLr schema. It uses a syntax that is similar to GraphQL but that also resembles the nodes and relationships in a query.
+
+# NOTES: See my "SCHEMA_DEFINITION_RULES.md" file.
+
+# Student node
+# ------------
+# "Student" is a node data type -- not a label as in other graph databases.
+(Student {
+    # labels: [], # You can define as many labels as you want inside a List. Labels can help to categorize nodes.
+    props: {
+        # NOTE: Internal `node_id` fields are used to track nodes and edges, so you cannot define a `node_id` prop in your schema.
+        id: {
+            type: String,
+            auto_generate: () => uuidv7(),
+        },
+        first_name: String,
+        last_name: String,
+        email: {
+            type: String,
+            # This is an example of a property index. This would generate the following Cypher query, which would be run during a migration: "CREATE INDEX email_index FOR (s:Student) ON (s.email)"
+            index: email_index,
+            # This is an example of a property constraint. This would generate the following Cypher query, which would be run during a migration: "CREATE CONSTRAINT unique_email_constraint FOR (s:Student) REQUIRE s.email IS UNIQUE"
+            constraints: {
+                # Syntax: Name of constraint: CONSTRAINT_TYPE
+                unique_email_constraint: UNIQUE,
+            },
+        },
+        age: {
+            type: Int,
+            optional: 0, # The syntax for the `optional` property is `optional: <defaultValue>`. The default value must be provided.
+            constraints: {
+                positive_age_constraint: (age >= 0),
+            },
+        },
+        address: {
+            street: String,
+            city: String,
+            state: String,
+            zip: String, # Zip codes are strings because integers can't represent a leading zero and also because other countries might use letters, spaces, or dashes.
+        },
+        roles: { # This is an example of an enum that can take a List of String values.
+            type: [String],
+            # The user's `roles` array can contain one or many values from the `at_least_one_value` array.
+            at_least_one_value: ["student", "employee", "athlete"],
+            # EXAMPLE VALUE: ["student"]
+        },
+        class_year: { # This is an example of an enum that can take only one String value.
+            type: String,
+            # The user's `class_year` can only be one of the values from the `only_one_value` array.
+            only_one_value: ["freshman", "sophomore", "junior", "senior"],
+            # EXAMPLE VALUE: "freshman",
+        },
+        misc: {
+            type: JSON,
+            # EXAMPLE VALUE: '{"accomodations":{"tests":"extra time"},"studentHousing":{"location":"none"}}'
+        },
+    },
+    # This is where node indexes would be defined.
+    indexes: {},
+    # This is where node constraints would be defined.
+    constraints: {},
+})
+
+# Course node
+# -----------
+(Course {
+    # labels: [],
+    props: {
+        uuid: {
+            type: String,
+            auto_generate: () => uuidv7(),
+        },
+        title: String,
+        subject: String,
+    },
+    # Node indexes
+    indexes: {
+        title_subject_index: (title, subject),
+    },
+    # Node constraints
+    constraints: {
+        # Example of a node constraint that includes multiple props:
+        unique_title_and_subject_constraint: (title, subject) UNIQUE,
+    },
+})
+
+# ENROLLED_IN relation
+# --------------------
+# The first node in the relation definition is the "from" node and the second node is the "to" node.
+# Relations can either be "bidirectional" (-[]-) or "directed" (-[]-> or <-[]-).
+(Student)
+-[ENROLLED_IN {
+    # labels: [],
+    props: {
+        enrollment_date: Date,
+        grade: Float,
+    },
+    indexes: {},
+    constraints: {},
+}]-
+(Course)
+
+# Instructor node
+# ---------------
+(Instructor {
+    # labels: [],
+    props: {
+        uuid: {
+            type: String,
+            auto_generate: () => uuidv7(),
+        },
+        first_name: String,
+        last_name: String,
+        email: String,
+    },
+    indexes: {},
+    constraints: {},
+})
+
+# COURSE_INSTRUCTOR relation
+# --------------------------
+(Course)
+-[COURSE_INSTRUCTOR {
+    # labels: [],
+    props: {
+        instructing_course_since: Date,
+    },
+    indexes: {},
+    constraints: {},
+}]->
+(Instructor)

@@ -1,6 +1,6 @@
-This is another idea for defining a Quigley schema. It uses a syntax that is similar to GraphQL but that also resembles the nodes and relationships in a query.
+# This is another idea for defining a GQLr schema. It uses a syntax that is similar to GraphQL but that also resembles the nodes and relationships in a query.
 
-NOTES: See my "SCHEMA_DEFINITION_RULES.md" file.
+# NOTES: See my "SCHEMA_DEFINITION_RULES.md" file.
 
 # Student node
 # ------------

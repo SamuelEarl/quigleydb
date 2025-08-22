@@ -1,0 +1,18 @@
+[schema]
+current_schema = "./src/db/schemas/schema_v1.mojo"
+
+# TODO: My original ideas was to run the schema syntax validator before each query, but that doesn't make sense. However, it does make sense to run the schema file through a CLI to verify that the syntax is correct. Read my notes in the `schema-styntax-validator.ts` file. So I will probably remove this config settings. 
+# The ideas behind this is to validate the schema to make sure that it contains the correct schema definitions for Nodes (NodeSchema types) and Relationships (RelationshipSchema types) and that each property within each schema definition is formatted correctly.
+# validate_schema_in_envs = ["development"]
+
+# Define the environments where queries should be validated against the schema. Queries are set during development and don't change after that. So if the queries are validated during development, then I don't think they need to be validated in production. This will make the queries faster in production because the query validation step can be skipped.
+validate_query_in_envs = ["development", "test", "staging"]
+# Users can set the default formatting for query results by setting `format_query_results_hierarchically` to `true` or `false`. Users can also set the formatting for their queries on a case by case basis by passing `true` or `false` as the third parameter to the quigley function.
+format_query_results_hierarchically = true
+
+[database]
+username = "my_username"
+password = "my_password"
+host = "localhost"
+port = 7777 # Find a port that will work for this database.
+graph = "My_Graph"
