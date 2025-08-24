@@ -44,9 +44,22 @@ _See https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINT
 
 ### REQUIRED & OPTIONAL VALUES
 
-* Required Fields: A field is required if it is defined in the schema (with no `optional` or `default` definitions). In a query, if no value is provided for a required field, then an error will be thrown. Required fields cannot have default values defined in the schema.
+* Required Fields: A field is required if it is defined in the schema and there are no `optional` or `default` options defined along with it.
+    * In a create query, if no value is provided for a required field (and if that field is not defined with `optional` or `default`), then an error will be thrown.
+    * Required fields can have `default` values defined in the schema to provide explicitness. For example, you might want to explicitly define the default value for a `roles` enum as in the following example, which would let all the developers know which role should be given to all users by default:
+    ```
+    roles: {
+        type: [String],
+        at_least_one_value: ["user", "admin"],
+        default: ["user"],
+    },
+    ```
+    * You might also want to assign a default value of `0` to a required currency property or a default value of `light` to a required theme property.
     * Tip: In most database designs the majority of properties should be required. (https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-NOT-NULL)
-* Optional Fields: A field is optional if it is marked with `optional: <defaultValue>`. An optional field must have a default value defined in the schema. In a query, if a value is not provided in a query, then the default value will be inserted. NULL is not an acceptable default value. The default value must be the same data type as the field.
+* Optional Fields: A field is optional if it is marked with `optional: <defaultValue>`. 
+    * An optional field must have a default value defined in the schema. 
+    * In a create query, if a value is not provided, then the default value will be inserted.
+    * NULL is not an acceptable default value. The default value must be the same data type as the field.
 * This means that all properties in all nodes/relations will be present and will have a non-null value. This is a stricter enforcement of the values that are inserted into the database, which is what I prefer for data integrity.
 
 ---
