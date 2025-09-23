@@ -144,3 +144,11 @@ Dense form (normal adjacency matrix):
 * `csr_matrix` = Compressed Sparse Row, great for fast row slicing (e.g., “get all neighbors of node X”).
 * You can also use `csc_matrix` (Compressed Sparse Column) for column operations, or `coo_matrix` (Coordinate list) for building matrices.
 * Linear algebra (like multiplication, eigenvalues, shortest paths approximations) can now be done efficiently on these sparse structures.
+
+---
+
+# Queries using linear algebra
+
+ChatGPT asked me: Do you want me to also show how you can query the graph using linear algebra operations (like “find neighbors” or “two-hop connections”) directly with sparse matrices, similar to how FalkorDB does it?
+
+I never responded, but I should explore this more.

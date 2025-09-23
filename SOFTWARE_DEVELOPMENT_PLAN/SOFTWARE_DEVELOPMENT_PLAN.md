@@ -88,3 +88,100 @@ struct MemTable:
 In short: Start by re-implementing a toy LSM-tree in Mojo: WAL → Memtable → SSTable → Compaction. That’s the foundation of RocksDB. Once you’ve got that, you can extend into advanced RocksDB features.
 
 Look in the `HELLO_LSM_STARTER_KIT.md` file for a starting point.
+
+---
+
+# If I wanted to create a graph database on top of RocksDB using the Mojo language, where should I start?
+
+If you want to build a graph database on top of RocksDB in Mojo, the key is to think in layers. Let’s break it down step by step so you know where to start and how to progress:
+
+## 1. Understand the Core Idea
+
+* RocksDB: A fast key-value store (persistent, embedded, ordered).
+* Graph database: Needs to store and query nodes, edges, properties, and indexes.
+* Mojo: A systems-oriented, high-performance language (similar to Python syntax but with C++/Rust-like performance). Since Mojo doesn’t yet have a fully fleshed-out ecosystem, you’ll likely need to use its FFI (foreign function interface) to bind to RocksDB’s C API.
+
+Your graph database will sit on top of RocksDB as a storage layer.
+
+## 2. Define the Storage Model
+
+You’ll need to decide how to map graph concepts to key-value pairs.
+
+A common approach is:
+
+* Nodes:
+
+Key: `"node:<node_id>"` → Value: serialized properties (JSON, MessagePack, ProtoBuf, or a custom format).
+
+* Edges:
+
+Key: `"edge:<src_id>:<dst_id>:<label>"` → Value: serialized edge properties.
+(Optional: store a reversed key for fast reverse lookups).
+
+* Adjacency lists:
+
+Key: `"adj:<node_id>"` → Value: list of neighbor node IDs (or compressed sparse row representation for linear algebra queries).
+
+This way, RocksDB acts as your raw graph store.
+
+## 3. Sparse Matrix Representation
+
+Since you mentioned FalkorDB-style sparse matrices:
+
+* Store adjacency lists in RocksDB, but also load them into memory as sparse matrices (e.g., CSR or COO format) when querying.
+* For queries like "neighbors of X" → use RocksDB lookups.
+* For graph algorithms (PageRank, shortest path, etc.) → pull subsets into sparse matrices and run linear algebra ops.
+
+## 4. Mojo Integration Plan
+
+Since RocksDB is written in C++, you’ll need to bind it. Steps:
+
+1. Use Mojo’s C FFI to call RocksDB’s C API.
+    1. Wrap `rocksdb_open`, `rocksdb_put`, `rocksdb_get`, `rocksdb_iterate`.
+    2. Write a small Mojo wrapper class: `GraphKVStore`.
+2. Build higher-level abstractions:
+    1. `Node(id: Int, props: Dict)`
+    2. `Edge(src: Int, dst: Int, label: String, props: Dict)`
+    3. `GraphDB` (manages schema, adjacency, queries).
+3. Implement a simple query engine:
+    1. `get_neighbors(node_id)`
+    2. `add_node`, `add_edge`
+    3. `find_path`, `degree(node_id)`, etc.
+
+## 5. Incremental Build Path
+
+Here’s a suggested roadmap:
+
+### Phase 1: RocksDB Binding in Mojo
+
+1. Write a Mojo wrapper for RocksDB basic operations (put, get, delete).
+
+### Phase 2: Graph Primitives
+
+1. Define Node and Edge.
+2. Encode/decode them to RocksDB key-value pairs.
+
+### Phase 3: Adjacency
+
+1. Implement adjacency list persistence (adj:<node_id> → neighbors).
+2. Add sparse matrix loader for queries.
+
+### Phase 4: Query Layer
+
+1. Add basic query functions (neighbors, edges, shortest_path).
+2. Maybe mimic a subset of Cypher or Gremlin later.
+
+### Phase 5: Optimizations
+
+1. Indexing by property values.
+2. Caching adjacency lists in memory.
+3. Adding linear algebra kernels in Mojo (Mojo’s strong suit).
+
+### 6. Where to Literally Start
+
+Since you’re using Mojo, I’d recommend:
+
+1. Start small: Write a Mojo wrapper around RocksDB (`GraphKVStore`).
+2. Implement `add_node(node_id, props)` and `get_node(node_id)`.
+3. Then move to `add_edge(src, dst, label, props)` + adjacency storage.
+4. Only after this, start designing the query language (Cypher-like).
