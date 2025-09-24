@@ -1,4 +1,4 @@
-# NOTES
+# Mojo Notes
 
 These notes are taken from this page (6 Aug 2025): https://docs.modular.com/mojo/manual/get-started.
 
