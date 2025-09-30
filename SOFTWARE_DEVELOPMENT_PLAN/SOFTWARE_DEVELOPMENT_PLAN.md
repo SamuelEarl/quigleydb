@@ -1,12 +1,10 @@
 # Software Development Plan
 
-Record my notes from ChatGPT and organize them into a step-by-step software development plan and record those steps in the `SOFTWARE_DEVELOPMENT_PLAN.md` file.
-
 ---
 
 # If I wanted to rewrite RocksDB in the Mojo language, where should I start?
 
-Great question — rewriting RocksDB (or any log-structured merge-tree database) in Mojo is an ambitious project. RocksDB itself is a huge C++ codebase (>400K LOC), optimized for decades. But if your goal is to build a Mojo-native key-value store inspired by RocksDB, here’s how I’d recommend breaking it down:
+Great question — rewriting RocksDB (or any log-structured merge-tree database) in Mojo is an ambitious project. RocksDB itself is a huge C++ codebase (>400K LOC), optimized over decades. But if your goal is to build a Mojo-native key-value store inspired by RocksDB, here’s how I’d recommend breaking it down:
 
 ## Step 1: Understand the Core Design of RocksDB
 

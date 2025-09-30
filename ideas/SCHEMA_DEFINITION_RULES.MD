@@ -28,6 +28,34 @@ node User {
 * You can use any unique identifeir for your ID properties. If you are not sure what to use, then you can look into UUIDv4, UUIDv7, and ULID as possible options for generating ID values. (See [UUIDv4 vs UUIDv7 vs ULID: Choosing the Right Identifier for Database Performance](https://medium.com/@ciro-gomes-dev/uuidv4-vs-uuidv7-vs-ulid-choosing-the-right-identifier-for-database-performance-1f7d1a0fe0ba))
 * Quigley does not make any assumptions about the unique ID value that you want to use (e.g. Int vs String), so you need to explicitly define the type of ID that you want in your schema.
 
+## ARRAYS OF OBJECTS
+
+This database will support arrays of objects within a node (along with nested arrays, nested objects, nested arrays of objects, etc). This is opposed to how Cypher/GQL databases require that each object within an array be a separate node. This is how you would define an array of objects in the schema definition:
+
+```
+node User {
+  props: {
+    uuid: {
+      type: String,
+      autoGenerate: () => uuidv7(),
+    },
+    array_of_objects: [
+      {
+        object_name: String,
+        nested_array_of_objects: [
+          {
+            prop1: String,
+            prop2: Int64,
+            prop3: Boolean,
+          }
+        ],
+      }
+    ],
+    # Other props...
+  },
+};
+```
+
 ## INDEXES
 
 Indexes can be defined on the specific properties that they apply to. See the `schema.v1.gqls` file for examples. 

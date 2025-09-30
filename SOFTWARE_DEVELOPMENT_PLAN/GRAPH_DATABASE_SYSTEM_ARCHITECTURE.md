@@ -66,7 +66,7 @@ A graph database written on top of a key-value store typically has a layered arc
 
 ## Layer 5: Query Language Layer
 
-ChatGPT did not provide any information about this layer. However, I don't think there is much to say about this layer. Whatever query language you use or design, that will be passed to the parser in layer 4 where it will be converted into an abstract syntax tree (AST).
+ChatGPT did not provide any information about this layer. However, I don't think there is much to say about this layer. Whatever query language you design or use, that will be passed to the parser in layer 4 where it will be converted into an abstract syntax tree (AST).
 
 
 ## Layer 4: Query Engine / Execution Layer
@@ -155,6 +155,8 @@ The KV store doesn’t "know" about graphs — it just stores bytes. The graph l
 
 ## Layer 1: File System / Hardware
 
+ChatGPT didn't mention anything for this layer, but that is probably because there is nothing specific to databases that needs to be described. This is just the same file system and hardware that any other software program would run on.
+
 ## Advanced Features
 
 1. Transactions & Consistency
@@ -197,6 +199,7 @@ RETURN b.name
 
 A graph database on a key-value store is like a "translation machine" — it translates graph operations into key-value lookups and updates. The KV store provides the raw persistence, while the graph layer provides structure, semantics, and query power.
 
+---
 
 # A graph adjacency list that is mapped onto a key-value schema (with concrete key naming patterns)
 
