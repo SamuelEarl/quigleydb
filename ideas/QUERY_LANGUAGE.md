@@ -84,7 +84,7 @@ result = db.tx(
 ```py
 result = db.tx(
     """
-    var path: Path[[(Movie)-[MOVIE_ACTOR]-(Actor)] = CREATE(
+    var path: Path[(Movie)-[MOVIE_ACTOR]-(Actor)] = CREATE(
         (m:Movie {
             "PROPS": {
                 "title": $title,
