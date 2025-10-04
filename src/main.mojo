@@ -9,7 +9,7 @@ from utils import Variant
 # import uuid_utils as uuid
 
 alias MixedValue = Variant[String, Int]
-alias ReturnData = Dict[String, MixedValue]
+alias NestedDict = Dict[String, MixedValue]
 
 def generate_uuid() -> String:
     """Returns a uuid. TODO: Update this to uuidv7 instead of uuidv4.
@@ -42,9 +42,9 @@ struct KVStore():
     }
     """
 
-    var store: Dict[String, String]
+    var store: Dict[String, NestedDict]
 
-    def __init__(out self, store: Dict[String, String] = {}):
+    def __init__(out self, var store: Dict[String, NestedDict]):
         """Initializes the key-value store.
 
         Args:
@@ -71,7 +71,7 @@ struct KVStore():
     #     return String('Record "{}" not found').format(collection_id)
     
     # # TODO: Implement try/except blocks and pass an error to this function when an error occurs.
-    # def get_return_statement(self, error: Bool, data: ReturnData, CRUD: String, collection_id: String):
+    # def get_return_statement(self, error: Bool, data: NestedDict, CRUD: String, collection_id: String):
     #     return {
     #         "data": data,
     #         "metadata": {
@@ -80,7 +80,7 @@ struct KVStore():
     #         },
     #     }
 
-    def create(self, collection_id: String, props: Dict[String, MixedValue]):
+    def create(self, collection_id: String, mut props: Dict[String, MixedValue]):
         # try:
         var collection, id = split_string(collection_id, ":")
         print("PARTS:", collection, id)
@@ -170,7 +170,7 @@ struct KVStore():
 
 def main():
     try:
-        var db: KVStore = KVStore()
+        var db: KVStore = KVStore(store={})
         # print("DB:", db)
 
         # var id = generate_uuid()
