@@ -1,7 +1,3 @@
-# deps
-node_modules/
-
-# env
-.env
-.env.*
-!.env.example
+# pixi environments
+.pixi/*
+!.pixi/config.toml

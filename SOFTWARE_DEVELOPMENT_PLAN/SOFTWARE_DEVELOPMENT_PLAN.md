@@ -8,6 +8,8 @@ Great question — rewriting RocksDB (or any log-structured merge-tree database)
 
 ## Step 1: Understand the Core Design of RocksDB
 
+(Look in the file LEARNING_ROCKSDB_INTERNALS.md for overviews, diagrams and internals documentations for RocksDB.)
+
 RocksDB is a log-structured merge-tree (LSM) key-value store. Its core components are:
 
 1. Write Path

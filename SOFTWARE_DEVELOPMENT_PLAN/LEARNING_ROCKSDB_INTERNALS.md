@@ -11,9 +11,10 @@ RocksDB is essentially an optimized Log-Structured Merge (LSM) tree. Before divi
 
 📖 Resources:
 
-* “The Log-Structured Merge-Tree (LSM-Tree)” (O’Neil et al., 1996).
-* RocksDB’s [Architecture Overview](https://github.com/facebook/rocksdb/wiki).
+* “The Log-Structured Merge-Tree (LSM-Tree)” (O’Neil et al., 1996)
+* RocksDB’s [Architecture Overview](https://github.com/facebook/rocksdb/wiki)
 * [RocksDB Overview](https://docs.pingcap.com/tidb/stable/rocksdb-overview/)
+* MemTable, Commitlog, SSTable diagram and explanation for ScyllaDB: https://www.scylladb.com/glossary/cassandra-memtable/. 
 
 ## 2. RocksDB’s High-Level Architecture
 
