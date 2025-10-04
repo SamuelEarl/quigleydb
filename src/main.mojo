@@ -92,9 +92,18 @@ struct KVStore():
         # If no exception was raised, then create the new record.
         if not id:
             id = generate_uuid()
+        # Add the "id" key and its value to the props dict.
         props["id"] = String("{0}:{1}").format(collection, id)
-        # if not collection in self.store:
-        #     self.store[collection] = {}
+        # If the collection key is not in the store, then add it along with an empty dict as its value.
+        if not collection in self.store:
+            self.store[collection] = {}
+            # I think `self.store._find_ref(collection)` returns a mutable reference to an entry in a Dict (https://forum.modular.com/t/how-to-return-a-mutable-reference-to-a-dict-entry/1508/6), but I can't figure out how to add an entry to a Dict.
+            # TODO: ALERT: Come back to Mojo later when it is stable.
+            # I keep getting errors like this: `error: invalid call to '__setitem__': invalid use of mutating method on rvalue of type 'Dict[String, Dict[String, Variant[String, Int]]]'`.
+            # I don't want to run into the issues that this guy has run into with breaking code: https://forum.modular.com/t/dict-get-ptr-method-suitable-permanent-replacement-for-application-code/1436/18.
+            # Maybe I will prototype this database in Python and convert it to Mojo after Mojo has a stable API, current documentation, and a much larger community that can help solve the issues that I am running into.
+
+            
         # self.store[collection][id] = props
         # return_data = self.store[collection][id]
         # return self.get_return_statement(False, return_data, "Created", collection_id)
